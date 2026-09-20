@@ -9,12 +9,21 @@ import { JSDOM, VirtualConsole } from 'jsdom';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-function loadPage() {
+const PLACEHOLDER = 'TU-USUARIO-BUTTONDOWN';
+
+// options.username: si se pasa, se sustituye el placeholder del action y la página
+// arranca en modo real (POST a Buttondown) en vez de modo demo.
+function loadPage(options = {}) {
   const jsdomErrors = [];
   const virtualConsole = new VirtualConsole();
   virtualConsole.on('jsdomError', (e) => jsdomErrors.push(e.message));
 
-  const dom = new JSDOM(readFileSync(join(here, 'index.html'), 'utf8'), {
+  let html = readFileSync(join(here, 'index.html'), 'utf8');
+  if (options.username) {
+    html = html.replaceAll(PLACEHOLDER, options.username);
+  }
+
+  const dom = new JSDOM(html, {
     runScripts: 'dangerously',
     pretendToBeVisual: true,
     url: 'https://resuelveya.test/',
@@ -113,9 +122,10 @@ test('los botones de guía muestran un toast mientras no exista la página', (t)
   assert.ok(p.$('#toast-msg').textContent.length > 20);
 });
 
-test('el formulario valida el email y confirma la suscripción (demo)', (t) => {
+test('el formulario valida el email y confirma la suscripción (modo demo)', (t) => {
   const p = loadPage();
   t.after(() => p.window.close());
+  const form = p.$('#email-form');
   const email = p.$('#email');
   const submit = p.$('#email-form button[type=submit]');
 
@@ -128,11 +138,59 @@ test('el formulario valida el email y confirma la suscripción (demo)', (t) => {
   email.value = 'maria@correo.com';
   p.fire(email, 'input');
   assert.ok(!email.classList.contains('invalid'));
+  assert.match(p.$('#form-note').textContent, new RegExp(PLACEHOLDER));
 
+  let prevented = null;
+  form.addEventListener('submit', (e) => { prevented = e.defaultPrevented; }, { capture: false });
   p.click(submit);
   assert.equal(p.$('#email-form').style.display, 'none');
   assert.ok(p.$('#form-success').classList.contains('visible'));
   assert.match(p.$('#form-success-email').textContent, /maria@correo\.com/);
+  assert.equal(p.$('#form-success-heading').textContent, '¡Listo, te has suscrito!');
+  assert.ok(p.$('#bd-fallback').hidden);
+  // En modo demo no hay proveedor al que enviar, así que el submit se cancela.
+  assert.equal(prevented, true);
+});
+
+test('con usuario de Buttondown el formulario hace un POST nativo real', (t) => {
+  const p = loadPage({ username: 'resuelveya' });
+  t.after(() => p.window.close());
+  const form = p.$('#email-form');
+  const email = p.$('#email');
+  const submit = p.$('#email-form button[type=submit]');
+
+  // Montaje según la doc de Buttondown: action al endpoint embed-subscribe, POST de
+  // formulario estándar (nunca fetch), campo embed=1 y tag opcional.
+  assert.equal(form.getAttribute('method'), 'post');
+  assert.equal(
+    form.getAttribute('action'),
+    'https://buttondown.com/api/emails/embed-subscribe/resuelveya',
+  );
+  assert.equal(form.getAttribute('target'), 'buttondown-frame');
+  assert.ok(p.window.document.getElementsByName('buttondown-frame').length >= 1, 'falta el iframe destino');
+  assert.equal(p.$('input[name=embed]').value, '1');
+  assert.equal(p.$('input[name=tag]').value, 'landing');
+  assert.ok(p.$('#form-note').querySelector('a[href="https://buttondown.com"]'), 'falta la atribución');
+  // Con JS activo la validación es nuestra (sin JS manda la nativa del navegador).
+  assert.equal(form.noValidate, true);
+
+  let prevented = null;
+  form.addEventListener('submit', (e) => { prevented = e.defaultPrevented; }, { capture: false });
+
+  email.value = 'carlos@correo.com';
+  p.click(submit);
+
+  // Load-bearing: en el camino válido NUNCA se llama a preventDefault(), o el formulario
+  // quedaría bonito pero sin enviar nada.
+  assert.equal(prevented, false);
+  // readOnly, no disabled: un control deshabilitado no se serializa en el POST.
+  assert.equal(email.readOnly, true);
+  assert.equal(email.disabled, false);
+  assert.equal(form.style.display, 'none');
+  assert.equal(p.$('#form-success-heading').textContent, '¡Revisa tu correo!');
+  assert.match(p.$('#form-success-email').textContent, /carlos@correo\.com/);
+  assert.equal(p.$('#bd-fallback').hidden, false);
+  assert.equal(p.$('#bd-fallback').href, 'https://buttondown.com/resuelveya');
 });
 
 test('el menú móvil abre, cierra con Escape y con clic en enlace', (t) => {

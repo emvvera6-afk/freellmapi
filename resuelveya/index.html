@@ -646,6 +646,13 @@
       min-height: 1.4em;
     }
 
+    .form-note a,
+    .bd-fallback {
+      color: inherit;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
     .form-success {
       display: none;
       max-width: 480px;
@@ -659,6 +666,25 @@
     .form-success.visible { display: block; }
 
     .form-success strong { display: block; margin-bottom: 4px; font-size: 1.05rem; }
+
+    .bd-fallback {
+      display: inline-block;
+      margin-top: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    /* Destino del POST de Buttondown: nunca se ve, pero tiene que existir en el DOM. */
+    .bd-frame {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      width: 1px;
+      height: 1px;
+      border: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
 
     .btn-submit {
       background: white;
@@ -1195,19 +1221,43 @@
       <div class="cta-banner reveal">
         <h2>¿Quieres soluciones frescas cada semana?</h2>
         <p>Únete a miles de personas que reciben tips prácticos sobre los problemas que más se buscan en internet. Sin spam.</p>
-        <form class="email-form" id="email-form" novalidate>
+        <!--
+          Suscripción con Buttondown. Sustituye TU-USUARIO-BUTTONDOWN por tu usuario real
+          (el de buttondown.com/<usuario>) y el formulario queda activo sin tocar nada más.
+          Mientras siga el placeholder, la página funciona en modo demo.
+
+          Ojo: este endpoint es un POST de formulario HTML estándar a propósito. La doc de
+          Buttondown pide no llamarlo con fetch(): a veces responde con un CAPTCHA o un
+          error de validación que el visitante tiene que poder seguir. Por eso el POST va a
+          un iframe oculto (target="buttondown-frame") y la confirmación autoritativa es el
+          correo de double opt-in que recibe el suscriptor.
+        -->
+        <form
+          class="email-form"
+          id="email-form"
+          action="https://buttondown.com/api/emails/embed-subscribe/TU-USUARIO-BUTTONDOWN"
+          method="post"
+          target="buttondown-frame"
+        >
+          <input type="hidden" name="embed" value="1">
+          <input type="hidden" name="tag" value="landing">
           <label class="sr-only" for="email">Tu email</label>
           <input type="email" id="email" name="email" placeholder="Tu mejor email" required autocomplete="email">
           <button type="submit" class="btn btn-submit">
             Suscribirme gratis <i class="fas fa-arrow-right" aria-hidden="true"></i>
           </button>
         </form>
-        <p class="form-note" id="form-note" aria-live="polite">Demo: conecta tu proveedor de email (Buttondown, MailerLite, Brevo…) en <code>handleSubmit()</code>.</p>
+        <p class="form-note" id="form-note" aria-live="polite"></p>
         <div class="form-success" id="form-success" role="status">
-          <strong><i class="fas fa-circle-check" aria-hidden="true"></i> ¡Listo, te has suscrito!</strong>
+          <strong id="form-success-title"><i class="fas fa-circle-check" aria-hidden="true"></i> <span id="form-success-heading">¡Casi listo!</span></strong>
           <span id="form-success-email"></span>
+          <a class="bd-fallback" id="bd-fallback" href="https://buttondown.com/" hidden>Suscribirme en la página de Buttondown</a>
         </div>
       </div>
+
+      <!-- Destino del POST de Buttondown: invisible, pero la respuesta (double opt-in o
+           CAPTCHA) queda confinada aquí en vez de navegar a otra página. -->
+      <iframe class="bd-frame" name="buttondown-frame" title="Respuesta de Buttondown" tabindex="-1" aria-hidden="true"></iframe>
     </div>
   </section>
   </main>
@@ -1432,38 +1482,102 @@
         });
       });
 
-      /* ---------- Formulario de email (demo) ---------- */
+      /* ---------- Newsletter: Buttondown ---------- */
       var form = document.getElementById('email-form');
       var emailInput = document.getElementById('email');
       var formNote = document.getElementById('form-note');
       var formSuccess = document.getElementById('form-success');
+      var formHeading = document.getElementById('form-success-heading');
       var formSuccessEmail = document.getElementById('form-success-email');
+      var bdFallback = document.getElementById('bd-fallback');
       var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 
+      // La configuración vive en el propio HTML: el usuario de Buttondown es el último
+      // segmento del action (https://buttondown.com/api/emails/embed-subscribe/<usuario>).
+      var PLACEHOLDER = 'TU-USUARIO-BUTTONDOWN';
+      var actionMatch = (form.getAttribute('action') || '').match(/embed-subscribe\/([^/?#]+)/i);
+      var bdUsername = actionMatch ? actionMatch[1].trim() : '';
+      var isLive = !!bdUsername && bdUsername.toUpperCase() !== PLACEHOLDER;
+      var bdHome = isLive ? 'https://buttondown.com/' + encodeURIComponent(bdUsername) : 'https://buttondown.com/';
+
+      // Con JS activo la validación es nuestra; sin JS manda la validación nativa del
+      // navegador y el POST real a Buttondown sigue funcionando.
+      form.noValidate = true;
+
+      function setNote(message, withAttribution) {
+        formNote.textContent = message;
+        if (withAttribution) {
+          formNote.appendChild(document.createTextNode(' '));
+          var link = document.createElement('a');
+          link.href = 'https://buttondown.com';
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.textContent = 'Powered by Buttondown.';
+          formNote.appendChild(link);
+        }
+      }
+
+      var LIVE_NOTE = 'Recibirás un correo para confirmar tu dirección (double opt-in). Sin spam.';
+      var DEMO_NOTE = 'Modo demo: cambia ' + PLACEHOLDER + ' en el action del formulario por tu usuario de Buttondown y la suscripción pasa a ser real.';
+
+      setNote(isLive ? LIVE_NOTE : DEMO_NOTE, isLive);
+
+      function showSuccess(email) {
+        form.style.display = 'none';
+        formNote.style.display = 'none';
+
+        if (isLive) {
+          formHeading.textContent = '¡Revisa tu correo!';
+          formSuccessEmail.textContent = 'Enviamos la solicitud para ' + email + '. Confirma tu dirección en el correo de Buttondown para quedar dentro.';
+          bdFallback.href = bdHome;
+          bdFallback.textContent = '¿No te llega? Suscríbete en buttondown.com/' + bdUsername;
+          bdFallback.hidden = false;
+          bdFallback.target = '_blank';
+          bdFallback.rel = 'noopener noreferrer';
+          showToast('Solicitud enviada: confirma en tu correo');
+        } else {
+          formHeading.textContent = '¡Listo, te has suscrito!';
+          formSuccessEmail.textContent = 'Te avisaremos en ' + email + ' cada semana. (Demo: no se ha enviado nada a ningún proveedor.)';
+          bdFallback.hidden = true;
+          showToast('¡Suscripción registrada! (demo)');
+        }
+
+        formSuccess.classList.add('visible');
+      }
+
       form.addEventListener('submit', function (e) {
-        e.preventDefault();
         var email = emailInput.value.trim();
 
         if (!EMAIL_RE.test(email)) {
+          e.preventDefault();
           emailInput.classList.add('invalid');
           emailInput.focus();
-          formNote.textContent = 'Revisa el email: falta algo (ejemplo: nombre@correo.com).';
+          setNote('Revisa el email: falta algo (ejemplo: nombre@correo.com).');
           return;
         }
 
         emailInput.classList.remove('invalid');
 
-        // TODO: sustituir por tu proveedor real (fetch a tu endpoint de suscripción).
-        form.style.display = 'none';
-        formNote.style.display = 'none';
-        formSuccessEmail.textContent = 'Te avisaremos en ' + email + ' cada semana. (Demo: no se ha enviado nada.)';
-        formSuccess.classList.add('visible');
-        showToast('¡Suscripción registrada!');
+        if (!isLive) {
+          e.preventDefault();
+          showSuccess(email);
+          return;
+        }
+
+        // Camino real: NO llamar a preventDefault(). El POST nativo del formulario sale
+        // hacia el iframe oculto y Buttondown gestiona el double opt-in (y el CAPTCHA si
+        // hace falta). El correo de confirmación es la única señal autoritativa.
+        // El campo pasa a readOnly, nunca a disabled: un control deshabilitado no se
+        // serializa y el email se perdería del POST.
+        emailInput.readOnly = true;
+        showSuccess(email);
       });
 
       emailInput.addEventListener('input', function () {
-        emailInput.classList.remove('invalid');
-        formNote.textContent = 'Demo: conecta tu proveedor de email (Buttondown, MailerLite, Brevo…) en el submit del formulario.';
+        if (emailInput.classList.contains('invalid')) {
+          emailInput.classList.remove('invalid');
+          setNote(isLive ? LIVE_NOTE : DEMO_NOTE, isLive);
+        }
       });
 
       /* ---------- Reveal on scroll ---------- */
