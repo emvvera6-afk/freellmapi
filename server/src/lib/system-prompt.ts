@@ -1,11 +1,13 @@
 import crypto from 'crypto';
 import type { ChatMessage } from '@freellmapi/shared/types.js';
 import { getDb, getUnifiedApiKey } from '../db/index.js';
+import { setClientProfileContext } from './client-context.js';
 
 // Per-client API keys with server-enforced system prompts (#411). A client
 // profile is a second kind of inference credential: it authenticates ONLY the
-// /v1 inference surface (proxy + responses), never the /api dashboard routes —
-// those require a dashboard session (middleware/requireAuth). The unified key
+// inference surfaces (OpenAI, Responses, Anthropic, Gemini, and protected
+// Ollama), never the /api dashboard routes — those require a dashboard session
+// (middleware/requireAuth). The unified key
 // keeps today's behavior exactly: full inference access, no injected prompt.
 
 export const CLIENT_PROFILE_KEY_PREFIX = 'sk-cp-';
@@ -66,6 +68,7 @@ export function resolveAuth(token: string | undefined): ResolvedAuth | null {
   const prompt = row.system_prompt != null && row.system_prompt.trim().length > 0
     ? row.system_prompt
     : null;
+  setClientProfileContext(row.id);
   return { kind: 'profile', profileId: row.id, name: row.name, systemPrompt: prompt };
 }
 

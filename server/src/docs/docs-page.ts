@@ -90,7 +90,7 @@ export const DOCS_HTML = `<!DOCTYPE html>
   </style>
 </head>
 <body>
-  <header class="top"><div class="wrap" style="padding:0;"><h1 id="doc-title">FreeLLMAPI</h1><span class="ver" id="doc-ver"></span></div></header>
+  <header class="top"><div class="wrap" style="padding:0;"><h1 id="doc-title">Muxora</h1><span class="ver" id="doc-ver"></span></div></header>
   <main class="wrap"><div id="root"><p class="loading">Loading API reference…</p></div></main>
   <script>
   (function () {

@@ -5,9 +5,10 @@ import type {
   ChatMessage,
   ChatToolDefinition,
 } from '@freellmapi/shared/types.js';
-import { getSetting, getUnifiedApiKey } from '../db/index.js';
+import { getSetting } from '../db/index.js';
 import { buildModelListing } from '../services/model-listing.js';
-import { extractApiToken, timingSafeStringEqual } from './proxy.js';
+import { extractApiToken } from './proxy.js';
+import { prependSystemPrompt, resolveAuth, type ResolvedAuth } from '../lib/system-prompt.js';
 import { runInboundChat, type InboundChatResult, type InboundChatWire } from '../lib/inbound-chat.js';
 import { secondsUntilNextMonth } from '../services/key-budget.js';
 import { runEmbeddings, EmbeddingsError } from '../services/embeddings.js';
@@ -37,28 +38,28 @@ export function isLoopback(req: Request): boolean {
   return !firstForwarded || isLoopbackAddress(firstForwarded);
 }
 
-function authorize(req: Request, res: Response): boolean {
+function authorize(req: Request, res: Response): ResolvedAuth | null {
   if ((req as Request & { urlTokenAuthenticated?: boolean }).urlTokenAuthenticated) {
-    return true;
+    return { kind: 'unified', systemPrompt: null };
   }
   const mode = getOllamaEmulationMode();
   if (mode === 'off') {
     res.status(404).json({ error: 'Ollama emulation is disabled' });
-    return false;
+    return null;
   }
   if (mode === 'open-loopback') {
-    if (isLoopback(req)) return true;
+    if (isLoopback(req)) return { kind: 'unified', systemPrompt: null };
     res.status(403).json({
       error: 'Ollama open-loopback mode only accepts connections from this machine',
     });
-    return false;
+    return null;
   }
-  const token = extractApiToken(req);
-  if (!token || !timingSafeStringEqual(token, getUnifiedApiKey())) {
+  const auth = resolveAuth(extractApiToken(req));
+  if (!auth) {
     res.status(401).json({ error: 'Invalid API key' });
-    return false;
+    return null;
   }
-  return true;
+  return auth;
 }
 
 // Ollama clients routinely configure `name:latest`; catalog ids carry no tag.
@@ -379,7 +380,8 @@ function ollamaWire(model: string): InboundChatWire {
 }
 
 ollamaRouter.post('/api/chat', (req, res) => {
-  if (!authorize(req, res)) return;
+  const auth = authorize(req, res);
+  if (!auth) return;
   const parsed = chatSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: `invalid request: ${parsed.error.message}` });
@@ -405,7 +407,7 @@ ollamaRouter.post('/api/chat', (req, res) => {
   const sessionId = Array.isArray(rawSession) ? rawSession[0] : rawSession;
   void runInboundChat(req, res, {
     model,
-    messages: ollamaMessages(body.messages),
+    messages: prependSystemPrompt(ollamaMessages(body.messages), auth.systemPrompt),
     stream: body.stream !== false,
     maxTokens: typeof options?.num_predict === 'number' ? options.num_predict : undefined,
     temperature: typeof options?.temperature === 'number' ? options.temperature : undefined,
@@ -494,7 +496,8 @@ function generateWire(model: string): InboundChatWire {
 }
 
 ollamaRouter.post('/api/generate', (req, res) => {
-  if (!authorize(req, res)) return;
+  const auth = authorize(req, res);
+  if (!auth) return;
   const parsed = generateSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: `invalid request: ${parsed.error.message}` });
@@ -525,7 +528,7 @@ ollamaRouter.post('/api/generate', (req, res) => {
   });
   void runInboundChat(req, res, {
     model,
-    messages,
+    messages: prependSystemPrompt(messages, auth.systemPrompt),
     stream: body.stream !== false,
     maxTokens: typeof options?.num_predict === 'number' ? options.num_predict : undefined,
     temperature: typeof options?.temperature === 'number' ? options.temperature : undefined,

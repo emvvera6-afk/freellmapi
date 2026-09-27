@@ -4,6 +4,7 @@
     "playground": "খেলার মাঠ",
     "keys": "চাবি",
     "analytics": "বিশ্লেষণ",
+    "workspace": "Workspace",
     "premium": "প্রিমিয়াম",
     "upgrade": "আপগ্রেড করুন",
     "settings": "সেটিংস",
@@ -60,7 +61,7 @@
     "emailChanged": "ইমেল সফলভাবে পরিবর্তিত হয়েছে।",
     "passwordReset": "পাসওয়ার্ড রিসেট হয়েছে। সাইন ইন করুন।",
     "resetCodeDockerHint": "Docker-এ চালাচ্ছেন? কোডটি কন্টেইনার লগে আছে: docker logs <container>।",
-    "desktopSessionFailed": "ড্যাশবোর্ড লোকাল সার্ভারে সাইন ইন করতে পারেনি। FreeLLMAPI বন্ধ করে আবার খুলুন।"
+    "desktopSessionFailed": "ড্যাশবোর্ড লোকাল সার্ভারে সাইন ইন করতে পারেনি। Muxora বন্ধ করে আবার খুলুন।"
   },
   "common": {
     "save": "সংরক্ষণ করুন",
@@ -166,7 +167,7 @@
     "autoUpdateCheck": "স্বয়ংক্রিয় আপডেট পরীক্ষা",
     "autoUpdateCheckHelp": "দিনে একবার নতুন রিলিজের জন্য GitHub পরীক্ষা করে এবং একটি অনুস্মারক দেখায়। ডিফল্টভাবে বন্ধ।",
     "openReleases": "GitHub রিলিজ খুলুন",
-    "restartAfterUpdate": "বিল্ড সম্পূর্ণ হওয়ার পর FreeLLMAPI পুনরায় চালু করুন।"
+    "restartAfterUpdate": "বিল্ড সম্পূর্ণ হওয়ার পর Muxora পুনরায় চালু করুন।"
   },
   "models": {
     "title": "মডেল",
@@ -189,7 +190,7 @@
     "monthlyTokenBudget": "মাসিক টোকেন বাজেট",
     "remaining": "অবশিষ্ট",
     "used": "ব্যবহৃত",
-    "usedScopeHint": "Chat requests only, since the start of this calendar month, summed over every model in the active chain — custom endpoints included. Traffic you send to a provider outside FreeLLMAPI is not counted.",
+    "usedScopeHint": "Chat requests only, since the start of this calendar month, summed over every model in the active chain — custom endpoints included. Traffic you send to a provider outside Muxora is not counted.",
     "legendRemainingTitle": "Remaining / monthly budget for {name} ({platform})",
     "noPublishedQuota": "+{count} with no published quota",
     "noPublishedQuotaTitle": "These models have no documented monthly token budget, so there is no remaining figure to show.",

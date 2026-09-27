@@ -1,5 +1,5 @@
 appId: com.freellmapi.desktop
-productName: FreeLLMAPI
+productName: Muxora
 directories:
   output: dist-electron
 files:

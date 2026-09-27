@@ -10,7 +10,8 @@ vi.mock('../../services/router.js', async (importOriginal) => {
 
 import type { Express } from 'express';
 import { createApp } from '../../app.js';
-import { initDb, getUnifiedApiKey } from '../../db/index.js';
+import { initDb, getDb, getUnifiedApiKey } from '../../db/index.js';
+import { nodeSqliteFactory } from '../../db/node-sqlite.js';
 import { mintDashboardToken } from '../helpers/auth.js';
 
 let dashToken = '';
@@ -63,7 +64,7 @@ describe('client profiles (#411)', () => {
 
   beforeAll(() => {
     process.env.ENCRYPTION_KEY = '0'.repeat(64);
-    initDb(':memory:');
+    initDb(':memory:', { factory: nodeSqliteFactory });
     app = createApp();
     unifiedKey = getUnifiedApiKey();
     dashToken = mintDashboardToken('client-profiles@example.com');
@@ -99,6 +100,57 @@ describe('client profiles (#411)', () => {
       expect(row.maskedKey).toBe(created.maskedKey);
       // The full key never appears in the list.
       expect(JSON.stringify(list.body)).not.toContain(created.key);
+    });
+
+    it('stores workspace contact metadata and role', async () => {
+      const { status, body } = await request(app, 'POST', '/api/client-profiles', {
+        token: dashToken,
+        body: {
+          name: 'Ana',
+          email: 'ana@example.com',
+          role: 'developer',
+          systemPrompt: null,
+        },
+      });
+      expect(status).toBe(201);
+      expect(body).toMatchObject({
+        name: 'Ana',
+        email: 'ana@example.com',
+        role: 'developer',
+        usage: { requests: 0, inputTokens: 0, outputTokens: 0, lastUsedAt: null },
+      });
+    });
+
+    it('returns current-month usage attributed to each workspace key', async () => {
+      const created = await createProfile('usage-bot');
+      getDb().prepare(`
+        INSERT INTO requests (platform, model_id, status, input_tokens, output_tokens, latency_ms, client_profile_id)
+        VALUES ('test', 'workspace-model', 'success', 120, 30, 10, ?)
+      `).run(created.id);
+
+      const list = await request(app, 'GET', '/api/client-profiles', { token: dashToken });
+      expect(list.status).toBe(200);
+      expect(list.body.find((profile: any) => profile.id === created.id).usage).toMatchObject({
+        requests: 1,
+        inputTokens: 120,
+        outputTokens: 30,
+      });
+    });
+
+    it('attributes a real inference request to the profile that authenticated it', async () => {
+      const created = await createProfile('attributed-bot');
+      const inference = await request(app, 'POST', '/v1/chat/completions', {
+        token: created.key,
+        body: { messages: [{ role: 'user', content: 'hi' }] },
+      });
+      expect(inference.status).toBe(200);
+
+      const list = await request(app, 'GET', '/api/client-profiles', { token: dashToken });
+      expect(list.body.find((profile: any) => profile.id === created.id).usage).toMatchObject({
+        requests: 1,
+        inputTokens: 3,
+        outputTokens: 1,
+      });
     });
 
     it('rejects a create without a name', async () => {
@@ -235,6 +287,45 @@ describe('client profiles (#411)', () => {
       const sent = seenMessages[0];
       expect(sent[0]).toMatchObject({ role: 'system', content: 'ENFORCED PROMPT' });
       expect(sent[1]).toMatchObject({ role: 'system', content: 'caller instructions' });
+    });
+
+    it('accepts workspace keys and enforces their prompt on the Anthropic wire', async () => {
+      const created = await createProfile('anthropic-bot', 'TEAM POLICY');
+      const { status } = await request(app, 'POST', '/v1/messages', {
+        token: created.key,
+        body: {
+          model: 'auto',
+          max_tokens: 32,
+          messages: [{ role: 'user', content: 'hi' }],
+        },
+      });
+      expect(status).toBe(200);
+      expect(seenMessages[0][0]).toMatchObject({ role: 'system', content: 'TEAM POLICY' });
+    });
+
+    it('accepts workspace keys and enforces their prompt on the Gemini wire', async () => {
+      const created = await createProfile('gemini-bot', 'TEAM POLICY');
+      const { status } = await request(app, 'POST', '/v1beta/models/auto:generateContent', {
+        token: created.key,
+        body: { contents: [{ role: 'user', parts: [{ text: 'hi' }] }] },
+      });
+      expect(status).toBe(200);
+      expect(seenMessages[0][0]).toMatchObject({ role: 'system', content: 'TEAM POLICY' });
+    });
+
+    it('accepts workspace keys and enforces their prompt on protected Ollama routes', async () => {
+      getDb().prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('ollama_emulation', 'key-required')").run();
+      const created = await createProfile('ollama-bot', 'TEAM POLICY');
+      const { status } = await request(app, 'POST', '/api/chat', {
+        token: created.key,
+        body: {
+          model: 'auto',
+          stream: false,
+          messages: [{ role: 'user', content: 'hi' }],
+        },
+      });
+      expect(status).toBe(200);
+      expect(seenMessages[0][0]).toMatchObject({ role: 'system', content: 'TEAM POLICY' });
     });
   });
 });

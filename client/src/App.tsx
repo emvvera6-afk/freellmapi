@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { AuthGate, ChangeCredentialsModal } from '@/components/auth-gate'
+import { BRAND_NAME, BrandMark } from '@/brand'
 import { CommandPalette } from '@/components/command-palette'
 import { openCommandPalette } from '@/components/command-palette-state'
 import { ErrorBoundary } from '@/components/error-boundary'
@@ -42,6 +43,7 @@ import LogsPage from '@/pages/LogsPage'
 import PremiumPage from '@/pages/PremiumPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import AgentsPage from '@/pages/AgentsPage'
+import WorkspacePage from '@/pages/WorkspacePage'
 
 // Every failed mutation surfaces as an error toast, so no action fails
 // silently. A page that already shows the failure inline can opt out with
@@ -70,7 +72,8 @@ const navItems = [
   { to: '/keys', labelKey: 'nav.keys' },
   { to: '/agents', labelKey: 'nav.agents' },
   { to: '/analytics', labelKey: 'nav.analytics' },
-  { to: '/premium', labelKey: 'nav.premium' },
+  { to: '/workspace', labelKey: 'nav.workspace' },
+  { to: '/plans', labelKey: 'nav.premium' },
 ]
 
 // The modality pages behind "Models"; surfaced in the nav dropdown and
@@ -133,9 +136,9 @@ function NavItem({ to, children }: { to: string; children: React.ReactNode }) {
 
 function Brand() {
   return (
-    <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-70">
-      <span className="inline-block size-2 rounded-full bg-foreground" />
-      <span className="font-semibold tracking-tight text-sm">FreeLLMAPI</span>
+    <Link to="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80" aria-label={BRAND_NAME}>
+      <BrandMark className="size-7 shrink-0" />
+      <span className="font-semibold tracking-[-0.025em] text-[15px]">{BRAND_NAME}</span>
     </Link>
   )
 }
@@ -249,7 +252,7 @@ function Navbar() {
         >
           <Brand />
           <nav
-            className="ms-10 hidden items-center gap-6 md:flex"
+            className="ms-7 hidden items-center gap-4 xl:gap-6 md:flex"
             style={isDesktopApp ? ({ WebkitAppRegion: 'no-drag' } as React.CSSProperties) : undefined}
           >
             {navItems.map((item) => {
@@ -310,7 +313,7 @@ function Navbar() {
                   signOutLabel={t('nav.signOut')}
                   changeEmailLabel={t('auth.changeEmail')}
                   changePasswordLabel={t('auth.changePassword')}
-                  onUpgrade={() => navigate('/premium')}
+                  onUpgrade={() => navigate('/plans')}
                   onOpenSettings={() => setSettingsOpen(true)}
                   onChangeEmail={() => setCredentialsMode('email')}
                   onChangePassword={() => setCredentialsMode('password')}
@@ -364,7 +367,7 @@ function Navbar() {
                   signOutLabel={t('nav.signOut')}
                   changeEmailLabel={t('auth.changeEmail')}
                   changePasswordLabel={t('auth.changePassword')}
-                  onUpgrade={() => navigate('/premium')}
+                  onUpgrade={() => navigate('/plans')}
                   onOpenSettings={() => setSettingsOpen(true)}
                   onChangeEmail={() => setCredentialsMode('email')}
                   onChangePassword={() => setCredentialsMode('password')}
@@ -470,7 +473,9 @@ function App() {
                       <Route path="/fallback" element={<Navigate to="/models/chat" replace />} />
                       <Route path="/analytics" element={<AnalyticsPage />} />
                       <Route path="/logs" element={<LogsPage />} />
-                      <Route path="/premium" element={<PremiumPage />} />
+                      <Route path="/workspace" element={<WorkspacePage />} />
+                      <Route path="/plans" element={<PremiumPage />} />
+                      <Route path="/premium" element={<Navigate to="/plans" replace />} />
                       <Route path="/test" element={<Navigate to="/playground" replace />} />
                       <Route path="/health" element={<Navigate to="/keys" replace />} />
                       <Route path="*" element={<NotFoundPage />} />

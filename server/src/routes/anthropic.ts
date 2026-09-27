@@ -10,7 +10,7 @@ import type {
   ChatContentBlock,
 } from '@freellmapi/shared/types.js';
 import { routeRequest, resolveModelGroupCandidates, resolveRoutingChain, resolveStickyPreference, routingReserveTokens, type RouteResult, type ResolvedChain, type ChainRow } from '../services/router.js';
-import { getSetting, getUnifiedApiKey } from '../db/index.js';
+import { getSetting } from '../db/index.js';
 import { contentToString } from '../lib/content.js';
 import { resolveTaskType } from '../lib/task-type.js';
 import { repairToolArguments, toolSchemaMap } from '../lib/tool-args.js';
@@ -20,7 +20,8 @@ import { sanitizeProviderErrorMessage } from '../lib/error-redaction.js';
 import { convertDocumentBlock, documentRejectionMessage } from '../lib/anthropic-documents.js';
 import { isClientAbortError, newClientAbortError, newHedgeAbortError, isUpstreamClassificationOutput } from '../lib/error-classify.js';
 import { logRequest } from '../lib/request-log.js';
-import { extractApiToken, timingSafeStringEqual, getStickyModel, setStickyModel } from './proxy.js';
+import { extractApiToken, getStickyModel, setStickyModel } from './proxy.js';
+import { prependSystemPrompt, resolveAuth, type ResolvedAuth } from '../lib/system-prompt.js';
 import { runFallbackLoop, newFallbackState, fallbackRoutingTokens, recordUpstreamSuccess, type ExhaustionBody, setFallbackHeaders, setExhaustionHeaders, type AttemptRecord, type FallbackState } from '../lib/fallback-loop.js';
 import { routedViaValue } from '../lib/header-value.js';
 import { applyTokenBudget, tokenBudgetMessage } from '../lib/guardrails.js';
@@ -201,14 +202,13 @@ function newMessageId(): string {
 }
 
 // ── Auth (shared with the OpenAI route) ─────────────────────────────────────
-function authenticate(req: Request, res: Response): boolean {
-  const token = extractApiToken(req);
-  const unifiedKey = getUnifiedApiKey();
-  if (!token || !timingSafeStringEqual(token, unifiedKey)) {
+function authenticate(req: Request, res: Response): ResolvedAuth | null {
+  const auth = resolveAuth(extractApiToken(req));
+  if (!auth) {
     sendError(res, 401, 'authentication_error', 'Invalid API key');
-    return false;
+    return null;
   }
-  return true;
+  return auth;
 }
 
 // ── Request translation: Anthropic → internal (OpenAI-shaped) ───────────────
@@ -446,7 +446,8 @@ function rescuedToToolCalls(
 
 anthropicRouter.post('/messages', async (req: Request, res: Response) => {
   const start = Date.now();
-  if (!authenticate(req, res)) return;
+  const auth = authenticate(req, res);
+  if (!auth) return;
 
   const parsed = messagesSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -504,6 +505,9 @@ anthropicRouter.post('/messages', async (req: Request, res: Response) => {
   });
   messages = compressionResult.messages;
   res.setHeader('X-FreeLLM-Compress', formatCompressionHeader(compressionResult));
+  // Workspace profile prompts are appended after compression so enforced team
+  // policy cannot be shortened or removed by the optimization pipeline.
+  messages = prependSystemPrompt(messages, auth.systemPrompt);
 
   const estimatedInputTokens = estimateTokens(messages);
   const imageCount = messages.reduce((n, m) =>
@@ -1086,7 +1090,8 @@ async function streamCompletion(
 // Anthropic token-counting endpoint. Claude Code calls this to size context
 // windows; we return a heuristic estimate (the proxy doesn't run a tokenizer).
 anthropicRouter.post('/messages/count_tokens', (req: Request, res: Response) => {
-  if (!authenticate(req, res)) return;
+  const auth = authenticate(req, res);
+  if (!auth) return;
   const parsed = messagesSchema.safeParse(req.body);
   if (!parsed.success) {
     sendError(res, 400, 'invalid_request_error', 'Invalid request');
@@ -1100,14 +1105,15 @@ anthropicRouter.post('/messages/count_tokens', (req: Request, res: Response) => 
     sendError(res, 400, 'invalid_request_error', documentRejectionMessage(converted.documentRejections));
     return;
   }
-  const { messages, tools } = converted;
-  const compressionResult = compressRequest(messages, {
+  const { tools } = converted;
+  const compressionResult = compressRequest(converted.messages, {
     header: req.headers['x-freellm-compress'],
     tools,
     recordStats: false,
   });
   res.setHeader('X-FreeLLM-Compress', formatCompressionHeader(compressionResult));
-  res.json({ input_tokens: estimateTokens(compressionResult.messages) });
+  const messages = prependSystemPrompt(compressionResult.messages, auth.systemPrompt);
+  res.json({ input_tokens: estimateTokens(messages) });
 });
 
 // Anthropic-compatible GET /v1/models. Content-negotiated: only answers when

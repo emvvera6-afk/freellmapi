@@ -1,7 +1,7 @@
 {
   "name": "freellmapi-desktop",
   "version": "0.11.1",
-  "description": "FreeLLMAPI menu-bar app — local OpenAI-compatible LLM router",
+  "description": "Muxora menu-bar app — secure OpenAI-compatible AI gateway for teams",
   "author": {
     "name": "tashfeenahmed",
     "email": "tashfene@gmail.com",

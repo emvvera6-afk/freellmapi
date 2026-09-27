@@ -1,8 +1,12 @@
 <div align="center">
 
-# FreeLLMAPI
+# Muxora
 
-**7.4 billion tokens per month.  34 free LLM providers. 635 free model endpoints. One OpenAI-compatible endpoint.**
+**One route. Every model. Your team in control.**
+
+7.4 billion tokens per month. 34 free LLM providers. 635 free model endpoints. One OpenAI-compatible endpoint.
+
+> **Compatibility note:** Muxora is the product brand; the open-source engine, npm package, CLI command, environment variables, database paths, and API contracts keep their existing `freellmapi` / `FREEAPI_*` identifiers so current installations continue to work.
 
 Aggregate free tiers from dozens of providers, plus custom OpenAI-compatible chat, embedding, image, and audio endpoints, behind a single `/v1` API. Keys are stored encrypted. A router picks the best available model for each request, falls over to the next provider when one is rate-limited, and tracks per-key usage so you stay under every free-tier cap.
 
@@ -25,10 +29,10 @@ Aggregate free tiers from dozens of providers, plus custom OpenAI-compatible cha
   <a href="https://apps.apple.com/app/id6804648934"><img src="repo-assets/badges/app-store.svg" height="48" alt="Download on the App Store"></a>
 </p>
 
-![FreeLLMAPI dashboard — Models page with the monthly token budget](repo-assets/github-hero.png)
+![Muxora dashboard — Models page with the monthly token budget](repo-assets/github-hero.png)
 
 
-Your router updates its own model catalog from a signed feed: new free models, quota changes, and compatibility fixes land without a `git pull`. Free installs get the monthly snapshot, so a model reaches them 30 days after it joins the live feed; premium routers get it the same day.
+Your router updates its own model catalog from a signed feed: new free models, quota changes, and compatibility fixes land without a `git pull`. Free installs get the monthly snapshot, so a model reaches them 30 days after it joins the live feed; Muxora Live routers get it the same day.
 **[Go live at freellmapi.co](https://freellmapi.co/?utm_source=github&utm_medium=readme&utm_campaign=premium&utm_content=readme_top#pricing)** ($19/yr, cancel anytime).
 
 </div>
@@ -46,7 +50,7 @@ Your router updates its own model catalog from a signed feed: new free models, q
 - [Desktop app](#desktop-app)
 - [Works with OpenAI-compatible clients](#works-with-openai-compatible-clients)
 - [Languages](#languages)
-- [Premium (live catalog)](#premium-live-catalog)
+- [Plans](#plans)
 - [Using the API](#using-the-api)
 - [Screenshots](#screenshots)
 - [How it works](#how-it-works)
@@ -61,9 +65,9 @@ Your router updates its own model catalog from a signed feed: new free models, q
 
 Every serious AI lab now offers a free tier, a few million tokens a month, a few thousand requests a day. On its own each tier is a toy. Stacked together, they add up to roughly **7.4 billion tokens per month** of working inference capacity, across **474 model families / 635 provider endpoints** from small-and-fast to reasonably capable.
 
-The problem is that stacking them by hand is painful: thirty-four different SDKs, thirty-four different rate limits, thirty-four places a request can fail. FreeLLMAPI collapses that into one OpenAI-compatible endpoint. Point any OpenAI client library at your local server, and it routes transparently across whichever providers you've added keys for.
+The problem is that stacking them by hand is painful: thirty-four different SDKs, thirty-four different rate limits, thirty-four places a request can fail. Muxora collapses that into one OpenAI-compatible endpoint. Point any OpenAI client library at your local server, and it routes transparently across whichever providers you've added keys for.
 
-And the free-tier landscape shifts weekly: providers launch models, retire them, and change quotas without notice. FreeLLMAPI tracks all of that for you. The router pulls a signed model catalog from [freellmapi.co](https://freellmapi.co) on its own, so your install keeps up without a `git pull`. See [Premium (live catalog)](#premium-live-catalog) for how fast it keeps up.
+And the free-tier landscape shifts weekly: providers launch models, retire them, and change quotas without notice. Muxora tracks all of that for you. The router pulls a signed model catalog from [freellmapi.co](https://freellmapi.co) on its own, so your install keeps up without a `git pull`. See [Plans](#plans) for how fast it keeps up.
 
 ![The free tier, stacked — ~7.4B tokens of free inference per month across 34 providers](repo-assets/free-tier.png)
 
@@ -163,11 +167,12 @@ Based on public documentation, July 2026 — corrections welcome.
 - **Smart routing, six strategies** — live per-model speed/capability/reliability scores rank your chain; automatic fallover retries the next model on 429/5xx with cooldowns and key rotation. [Routing in detail →](docs/en/architecture/00-high-level-index.md#how-it-works)
 - **Unified models & profiles** — the same model on several providers collapses into one entry with strict in-group failover; named fallback-chain profiles (a coding chain, a vision chain) switch from the dashboard or per request via `auto:<profile>`.
 - **Per-key rate tracking** — RPM/RPD/TPM/TPD counters per `(platform, model, key)` that learn providers' reported ceilings, so routing always stays under every cap.
-- **Self-updating model catalog** — the router syncs a signed catalog from freellmapi.co twice a day: new models, quota changes, and provider quirk fixes land automatically. Free installs track the monthly snapshot, which each model joins 30 days after it lands in the live feed; premium routers get it same-day. [Premium →](#premium-live-catalog)
+- **Self-updating model catalog** — the router syncs a signed catalog from freellmapi.co twice a day: new models, quota changes, and provider quirk fixes land automatically. Free installs track the monthly snapshot, which each model joins 30 days after it lands in the live feed; Muxora Live routers get it same-day. [Plans →](#plans)
 - **Sticky sessions & context handoff** — conversations stay on one model for 30 minutes; an optional compact handoff note keeps the thread coherent when a mid-chat switch does happen. [Details →](docs/en/clients/01-agent-clients.md#context-handoff)
 - **Prompt compression (opt-in)** — a shared, fail-open request pipeline can deduplicate prompts, filter tool output, compact repeated JSON, and trim stale context before cache lookup and routing. [Details →](docs/en/compression/01-compression-pipeline.md)
 - **Encrypted keys, one token out** — provider keys are AES-256-GCM encrypted in SQLite and decrypted in-memory per request; your apps only ever see a single unified `freellmapi-…` bearer token.
-- **Admin dashboard & analytics** — React UI to manage keys, reorder the chain, run a playground, and read p50/p95/TTFT analytics over 24h–90d windows; login-gated, dark/light themes, [60 languages](#languages).
+- **Workspace access for teams** — issue a separate encrypted API key to each teammate, application, or automation; assign a member/developer/service role, enforce a system prompt, pause or rotate access instantly, and see per-profile requests and token usage for the current month.
+- **Admin dashboard & analytics** — React UI to manage keys, workspace access, routing, the playground, and p50/p95/TTFT analytics over 24h–90d windows; login-gated, dark/light themes, [60 languages](#languages).
 - **MCP server & interactive docs** — agents can introspect usable models, provider health, and routing strategy over `/mcp`; a dependency-free OpenAPI viewer lives at `/v1/docs`. [Coding agents →](docs/en/clients/01-agent-clients.md)
 - **Ops niceties** — opt-in response cache, encrypted DB backups, periodic key health checks, bulk key import/export, declarative startup config. [Install & deploy →](docs/en/install/01-install.md)
 - **Runs anywhere Node 20+ runs** — Windows, macOS, Linux servers, or a small ARM SBC (Raspberry Pi included). ~40 MB RSS at idle behind PM2 / systemd / whatever supervisor you prefer.
@@ -194,7 +199,7 @@ Everything else — Docker Compose, local development, declarative startup confi
 
 A native menu-bar app lives in [`desktop/`](./desktop): the entire router + dashboard running locally from your tray, with a glass popover showing live request stats.
 
-![FreeLLMAPI desktop app](repo-assets/desktop.png)
+![Muxora desktop app](repo-assets/desktop.png)
 
 **[Download from Releases](https://github.com/tashfeenahmed/freellmapi/releases/latest)** — the macOS `.dmg` and the Windows `.exe` installer are attached to every release. No account or password to set up: the only credential you need is the unified API key from the tray popover. Build-from-source steps and where your data lives: [docs/en/install/01-install.md#desktop-app](docs/en/install/01-install.md#desktop-app).
 
@@ -230,7 +235,7 @@ Every generator supports `--dry-run`, creates a timestamped backup before changi
 | Hermes Agent | `setup-hermes` | `/v1` |
 | Cursor | `setup-cursor` guide | public `/v1` URL |
 
-FreeLLMAPI is local-first and single-user by design. Your provider keys stay in your SQLite database, encrypted at rest, and requests go from your machine to the upstream providers you enabled.
+Muxora is local-first and owner-controlled. Your provider keys stay in your SQLite database, encrypted at rest; teammates and services receive separately revocable workspace keys, while requests still go directly from your machine to the upstream providers you enabled.
 
 ## Languages
 
@@ -256,13 +261,28 @@ add a language, copy `en.json`, translate the values, and register the locale in
 strings); `npm test` checks every locale for key/placeholder parity — PRs
 welcome.
 
-## Premium (live catalog)
+## Plans
 
-The router keeps its model catalog fresh on its own: it pulls a signed catalog
-from [freellmapi.co](https://freellmapi.co) twice a day and applies new models,
-quota changes, and provider quirk fixes to your local DB. Your own
-enable/disable choices and custom providers are never touched, and every
-download is verified against a pinned Ed25519 key before it is applied.
+Muxora is bring-your-own-key software: provider credentials and inference
+charges remain under your control. Revenue funds routing, workspace controls,
+security, model testing, updates, and support — Muxora does not resell
+providers' free credits.
+
+- **Community — free, self-hosted.** The complete MIT-licensed gateway,
+  encrypted provider keys, routing, failover, and the monthly signed catalog.
+- **Live — $19/year or $49 once, lifetime.** Same-day signed catalog updates on
+  every router you run. Stripe checkout; cancel anytime and manage billing
+  yourself.
+- **Team — proposed $49/month early access.** Everything in Live plus onboarding,
+  priority support, workspace policy templates, and managed-update guidance.
+  The dashboard's Team CTA opens an early-access conversation; no recurring
+  Team entitlement is claimed until that service is ready.
+
+The router pulls its signed catalog from
+[freellmapi.co](https://freellmapi.co) twice a day and verifies every download
+against a pinned Ed25519 key. Your enable/disable choices and custom providers
+are never touched. Community receives the monthly snapshot; Live receives the
+same-day feed when models, quotas, and provider quirks change.
 
 The catalog currently tracks **34 providers**, **474 model families**, **635
 free provider/model endpoints** (584 chat, 41 embeddings, 7 transcription, 3
@@ -270,27 +290,12 @@ video), and roughly **7.4 billion tokens per month** of listed free-tier
 capacity. Browse the full set at
 **[freellmapi.co/models](https://freellmapi.co/models.html)**.
 
-Free installs pull the same signed catalog, but from the monthly snapshot: a
-model joins it 30 days after it lands in the live feed, so the free build
-currently sits about 303 models behind. Nothing expires and nothing is
-crippled — it just arrives later.
+**[Choose Live at freellmapi.co →](https://freellmapi.co/?utm_source=github&utm_medium=readme&utm_campaign=premium&utm_content=readme_bottom#pricing)**
 
-Premium keeps that signed catalog live on every router you run. When a provider
-launches a strong free model, quietly tightens a quota, or breaks a wire format,
-live-feed routers receive the update the same day we ship it.
-
-**[Go live at freellmapi.co →](https://freellmapi.co/?utm_source=github&utm_medium=readme&utm_campaign=premium&utm_content=readme_bottom#pricing)**
-
-- $19/year or $49 once, lifetime. Stripe checkout; cancel anytime, self-serve.
-- One `fla_` key covers every router you run: desktop, homelab, Raspberry Pi.
-- Activate in the dashboard under **Premium**; cancel or manage billing
-  self-serve at [freellmapi.co/manage](https://freellmapi.co/manage).
-- The router itself stays MIT-licensed and fully free, forever. Premium is only
-  the live feed, and it's what funds the daily model testing and catalog
-  maintenance that keeps the catalog working.
-
-The catalog server never sees your prompts, completions, or provider keys — the
-router stays fully self-hosted either way.
+One existing `fla_` license covers desktop, homelab, Raspberry Pi, and other
+routers you run. Activate it in the dashboard under **Plans**. The catalog
+server never sees prompts, completions, or provider keys; the gateway remains
+self-hosted on every plan.
 
 ## Using the API
 
@@ -497,7 +502,7 @@ Contributors very welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for the dev lo
 
 ## Disclaimer
 
-**This project is for personal experimentation and learning, not production.** Free tiers exist so developers can prototype against them; they aren't a stable, supported inference substrate and shouldn't be treated as one. If you build something real on top of FreeLLMAPI, swap in a paid API before you ship. Your relationship with each upstream provider is governed by the terms you accepted when you created your account — those terms still apply when the traffic is proxied through this project, and you're responsible for complying with them.
+**This project is for personal experimentation and learning, not production.** Free tiers exist so developers can prototype against them; they aren't a stable, supported inference substrate and shouldn't be treated as one. If you build something real on top of Muxora, swap in a paid API before you ship. Your relationship with each upstream provider is governed by the terms you accepted when you created your account — those terms still apply when the traffic is proxied through this project, and you're responsible for complying with them.
 
 How each provider's ToS views a personal, single-user proxy — reviewed provider by provider in May 2026 — is in [docs/en/architecture/00-high-level-index.md#terms-of-service-review](docs/en/architecture/00-high-level-index.md#terms-of-service-review).
 

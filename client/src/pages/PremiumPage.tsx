@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { ExternalLink, RefreshCw, Sparkles } from 'lucide-react'
+import { Check, ExternalLink, RefreshCw, Sparkles, Users } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
@@ -22,8 +22,56 @@ function fmtDate(iso: string | null): string {
   return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
+const PLAN_COPY = {
+  en: {
+    title: 'Plans & billing',
+    description: 'Start with the local gateway, then add faster catalog updates or a managed team workspace.',
+    pricing: 'Simple plans, built around your own provider keys',
+    pricingHint: 'Muxora charges for control, updates, and support — not for reselling provider credits.',
+    current: 'Current',
+    community: 'Community',
+    communityPrice: '$0',
+    communityPeriod: 'forever',
+    communityFeatures: ['Self-hosted AI gateway', 'Smart routing and failover', 'Monthly model catalog'],
+    live: 'Live',
+    livePrice: '$19',
+    livePeriod: 'per year',
+    liveFeatures: ['Everything in Community', 'Same-day catalog updates', 'One license for every device'],
+    team: 'Team',
+    teamPrice: '$49',
+    teamPeriod: 'per month · early access',
+    teamFeatures: ['Everything in Live', 'Separate member and service keys', 'Attributable monthly usage', 'Priority setup support'],
+    chooseLive: 'Choose Live',
+    contact: 'Request Team access',
+    recommended: 'Recommended',
+  },
+  es: {
+    title: 'Planes y facturación',
+    description: 'Empieza con la pasarela local y añade un catálogo más rápido o un espacio administrado para tu equipo.',
+    pricing: 'Planes simples alrededor de tus propias claves de proveedor',
+    pricingHint: 'Muxora cobra por control, actualizaciones y soporte, no por revender créditos de proveedores.',
+    current: 'Actual',
+    community: 'Community',
+    communityPrice: '0 $',
+    communityPeriod: 'para siempre',
+    communityFeatures: ['Pasarela de IA autohospedada', 'Enrutamiento y conmutación inteligente', 'Catálogo mensual de modelos'],
+    live: 'Live',
+    livePrice: '19 $',
+    livePeriod: 'al año',
+    liveFeatures: ['Todo lo incluido en Community', 'Catálogo actualizado el mismo día', 'Una licencia para todos tus dispositivos'],
+    team: 'Team',
+    teamPrice: '49 $',
+    teamPeriod: 'al mes · acceso anticipado',
+    teamFeatures: ['Todo lo incluido en Live', 'Claves separadas por miembro o servicio', 'Uso mensual atribuible', 'Soporte prioritario de configuración'],
+    chooseLive: 'Elegir Live',
+    contact: 'Solicitar acceso Team',
+    recommended: 'Recomendado',
+  },
+} as const
+
 export default function PremiumPage() {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
+  const plans = locale.startsWith('es') ? PLAN_COPY.es : PLAN_COPY.en
   const queryClient = useQueryClient()
   const [keyInput, setKeyInput] = useState('')
   const [activateAttempted, setActivateAttempted] = useState(false)
@@ -67,7 +115,7 @@ export default function PremiumPage() {
   if (isLoading || !data) {
     return (
       <div>
-        <PageHeader title={t('premium.title')} description={t('premium.description')} />
+        <PageHeader title={plans.title} description={plans.description} />
         <div className="space-y-6">
           <CardSkeleton />
           <CardSkeleton />
@@ -81,8 +129,8 @@ export default function PremiumPage() {
   return (
     <div>
       <PageHeader
-        title={t('premium.title')}
-        description={t('premium.description')}
+        title={plans.title}
+        description={plans.description}
         actions={
           <Button variant="outline" size="sm" onClick={() => syncNow.mutate()} disabled={syncNow.isPending}>
             <RefreshCw className={syncNow.isPending ? 'animate-spin' : ''} />
@@ -92,6 +140,77 @@ export default function PremiumPage() {
       />
 
       <div className="space-y-8">
+        <section>
+          <div className="mb-3">
+            <h2 className="text-sm font-medium">{plans.pricing}</h2>
+            <p className="mt-1 text-xs text-muted-foreground">{plans.pricingHint}</p>
+          </div>
+          <div className="grid gap-3 lg:grid-cols-3">
+            <div className="flex flex-col rounded-3xl border bg-card p-5">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium">{plans.community}</p>
+                {!licensed && <Badge variant="secondary">{plans.current}</Badge>}
+              </div>
+              <div className="mt-4 flex items-baseline gap-2">
+                <span className="text-3xl font-semibold tracking-tight">{plans.communityPrice}</span>
+                <span className="text-xs text-muted-foreground">{plans.communityPeriod}</span>
+              </div>
+              <ul className="mt-5 flex-1 space-y-2">
+                {plans.communityFeatures.map(feature => (
+                  <li key={feature} className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <Check className="mt-0.5 size-3.5 shrink-0 text-primary" />{feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="relative flex flex-col rounded-3xl border border-primary/35 bg-primary/[0.035] p-5 shadow-[0_18px_50px_-35px_var(--primary)]">
+              <Badge className="absolute right-4 top-4">{plans.recommended}</Badge>
+              <div className="flex items-center justify-between gap-3 pr-24">
+                <p className="text-sm font-medium">{plans.live}</p>
+                {licensed && <Badge variant="secondary">{plans.current}</Badge>}
+              </div>
+              <div className="mt-4 flex items-baseline gap-2">
+                <span className="text-3xl font-semibold tracking-tight">{plans.livePrice}</span>
+                <span className="text-xs text-muted-foreground">{plans.livePeriod}</span>
+              </div>
+              <ul className="mt-5 flex-1 space-y-2">
+                {plans.liveFeatures.map(feature => (
+                  <li key={feature} className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <Check className="mt-0.5 size-3.5 shrink-0 text-primary" />{feature}
+                  </li>
+                ))}
+              </ul>
+              {!licensed && (
+                <a href={`${siteUrl}/#pricing`} target="_blank" rel="noopener noreferrer" className="mt-5">
+                  <Button className="w-full" size="sm">{plans.chooseLive}<ExternalLink className="size-3.5" /></Button>
+                </a>
+              )}
+            </div>
+
+            <div className="flex flex-col rounded-3xl border bg-card p-5">
+              <div className="flex items-center gap-2">
+                <Users className="size-4 text-primary" />
+                <p className="text-sm font-medium">{plans.team}</p>
+              </div>
+              <div className="mt-4 flex items-baseline gap-2">
+                <span className="text-3xl font-semibold tracking-tight">{plans.teamPrice}</span>
+                <span className="text-xs text-muted-foreground">{plans.teamPeriod}</span>
+              </div>
+              <ul className="mt-5 flex-1 space-y-2">
+                {plans.teamFeatures.map(feature => (
+                  <li key={feature} className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <Check className="mt-0.5 size-3.5 shrink-0 text-primary" />{feature}
+                  </li>
+                ))}
+              </ul>
+              <a href="mailto:support@freellmapi.co?subject=Muxora%20Team%20early%20access" className="mt-5">
+                <Button variant="outline" className="w-full" size="sm">{plans.contact}<ExternalLink className="size-3.5" /></Button>
+              </a>
+            </div>
+          </div>
+        </section>
+
         {/* Catalog feed state */}
         <section>
           <h2 className="text-sm font-medium mb-3">{t('premium.catalogFeed')}</h2>

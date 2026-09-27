@@ -5,7 +5,8 @@
     "keys": "Keys",
     "agents": "Agents",
     "analytics": "Analytics",
-    "premium": "Premium",
+    "workspace": "Workspace",
+    "premium": "Plans",
     "upgrade": "Upgrade",
     "settings": "Settings",
     "signOut": "Sign out",
@@ -60,7 +61,7 @@
     "emailChanged": "Email changed successfully.",
     "passwordReset": "Password reset successfully. Please sign in.",
     "resetCodeDockerHint": "Running in Docker? The code is in the container log: docker logs <container>.",
-    "desktopSessionFailed": "The dashboard could not sign in to the local server. Quit FreeLLMAPI and open it again."
+    "desktopSessionFailed": "The dashboard could not sign in to the local server. Quit Muxora and open it again."
   },
   "common": {
     "save": "Save",
@@ -166,7 +167,7 @@
     "autoUpdateCheck": "Automatic update check",
     "autoUpdateCheckHelp": "Checks GitHub once a day for a new release and shows a reminder. Off by default.",
     "openReleases": "Open GitHub Releases",
-    "restartAfterUpdate": "Restart FreeLLMAPI after the build completes."
+    "restartAfterUpdate": "Restart Muxora after the build completes."
   },
   "models": {
     "title": "Models",
@@ -189,7 +190,7 @@
     "monthlyTokenBudget": "Monthly token budget",
     "remaining": "remaining",
     "used": "used",
-    "usedScopeHint": "Chat requests only, since the start of this calendar month, summed over every model in the active chain — custom endpoints included. Traffic you send to a provider outside FreeLLMAPI is not counted.",
+    "usedScopeHint": "Chat requests only, since the start of this calendar month, summed over every model in the active chain — custom endpoints included. Traffic you send to a provider outside Muxora is not counted.",
     "legendRemainingTitle": "Remaining / monthly budget for {name} ({platform})",
     "noPublishedQuota": "+{count} with no published quota",
     "noPublishedQuotaTitle": "These models have no documented monthly token budget, so there is no remaining figure to show.",
@@ -1008,11 +1009,11 @@
     "snapshotDescription": "Free tier: the catalog refreshes from a monthly snapshot, checked automatically twice a day. Premium switches this to the live feed, updated every 2-3 days.",
     "lastSyncProblem": "Last sync problem: {error}",
     "license": "License",
-    "planAnnual": "Premium Annual",
-    "planLifetime": "Premium Lifetime",
+    "planAnnual": "Live Annual",
+    "planLifetime": "Live Lifetime",
     "expired": "Expired",
     "inactive": "Inactive",
-    "lifetimeNote": "Lifetime license: never expires.",
+    "lifetimeNote": "Lifetime Live license: never expires.",
     "renewsOn": "Renews on {date}.",
     "willNotRenew": "Will not renew. Premium until {date}, then this install falls back to the free monthly catalog.",
     "keyInactive": "This key is no longer active. The app keeps working on the free monthly catalog.",
@@ -1028,9 +1029,9 @@
     "recoverKey": "Recover it on the website",
     "upsellTitle": "Go live for $19 a year",
     "upsellDescription": "New free models the moment they exist, instead of 30 days later. One key, every device. Cancel anytime; the router stays free forever.",
-    "goPremium": "Go Premium",
+    "goPremium": "Choose Live",
     "bundled": "bundled",
-    "planGeneric": "Premium"
+    "planGeneric": "Live"
   },
   "languages": {
     "en": "English",

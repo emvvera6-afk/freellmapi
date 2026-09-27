@@ -33,6 +33,7 @@ import { Switch } from '@/components/ui/switch'
 import { Tooltip } from '@/components/tooltip'
 import { SUPPORTED_LOCALES, type Locale, useI18n } from '@/i18n'
 import { type Theme, useTheme } from '@/theme-context'
+import { BRAND_NAME, ENGINE_NAME } from '@/brand'
 import { apiFetch } from '@/lib/api'
 
 // Small info affordance used next to labels a first-time user can't be expected
@@ -780,7 +781,7 @@ function UpdateChecker({ active }: { active: boolean }) {
   return (
     <>
       <Row
-        label="FreeLLMAPI"
+        label={`${BRAND_NAME} · ${ENGINE_NAME} engine`}
         hint={t('settings.contactsGithub')}
         control={(
           <div className="flex items-center gap-2 text-sm tabular-nums">

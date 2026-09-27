@@ -4,6 +4,7 @@
     "playground": "Leikkipaikka",
     "keys": "Avaimet",
     "analytics": "Analytiikka",
+    "workspace": "Workspace",
     "premium": "Premium",
     "upgrade": "Päivitys",
     "settings": "Asetukset",
@@ -60,7 +61,7 @@
     "emailChanged": "Sähköposti vaihdettu.",
     "passwordReset": "Salasana palautettu. Kirjaudu sisään.",
     "resetCodeDockerHint": "Onko käytössä Docker? Koodi on kontin lokissa: docker logs <container>.",
-    "desktopSessionFailed": "Hallintapaneeli ei voinut kirjautua paikalliselle palvelimelle. Sulje FreeLLMAPI ja avaa se uudelleen."
+    "desktopSessionFailed": "Hallintapaneeli ei voinut kirjautua paikalliselle palvelimelle. Sulje Muxora ja avaa se uudelleen."
   },
   "common": {
     "save": "Tallenna",
@@ -166,7 +167,7 @@
     "autoUpdateCheck": "Automaattinen päivitystarkistus",
     "autoUpdateCheckHelp": "Tarkistaa GitHubista kerran päivässä, onko uutta julkaisua, ja näyttää muistutuksen. Oletuksena pois päältä.",
     "openReleases": "Avaa GitHub-julkaisut",
-    "restartAfterUpdate": "Käynnistä FreeLLMAPI uudelleen koonnin valmistuttua."
+    "restartAfterUpdate": "Käynnistä Muxora uudelleen koonnin valmistuttua."
   },
   "models": {
     "title": "Mallit",
@@ -189,7 +190,7 @@
     "monthlyTokenBudget": "Kuukausittainen token-budjetti",
     "remaining": "jäljelle jääminen",
     "used": "käytetty",
-    "usedScopeHint": "Chat requests only, since the start of this calendar month, summed over every model in the active chain — custom endpoints included. Traffic you send to a provider outside FreeLLMAPI is not counted.",
+    "usedScopeHint": "Chat requests only, since the start of this calendar month, summed over every model in the active chain — custom endpoints included. Traffic you send to a provider outside Muxora is not counted.",
     "legendRemainingTitle": "Remaining / monthly budget for {name} ({platform})",
     "noPublishedQuota": "+{count} with no published quota",
     "noPublishedQuotaTitle": "These models have no documented monthly token budget, so there is no remaining figure to show.",

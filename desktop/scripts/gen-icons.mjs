@@ -1,6 +1,6 @@
-// Generates the desktop icons from the brand mark (client/public/favicon.svg
-// design: dot inside a broken routing ring) without any image dependencies —
-// pure-Node PNG encoding (zlib IDAT + hand-rolled CRC32), 4x supersampled.
+// Generates the desktop icons from the Muxora mark (converging model routes
+// around a central decision point) without image dependencies — pure-Node PNG
+// encoding (zlib IDAT + hand-rolled CRC32), 4x supersampled.
 //
 // Outputs:
 //   assets/trayTemplate.png      16x16  black-on-transparent (macOS template)
@@ -120,6 +120,15 @@ const ring = (cx, cy, r, stroke, gapC, gapW, color) => ({
   color,
   cover: (x, y) => ringCover(x, y, cx, cy, r, stroke, gapC, gapW),
 });
+const capsule = (x1, y1, x2, y2, width, color) => ({
+  color,
+  cover: (x, y) => {
+    const dx = x2 - x1, dy = y2 - y1;
+    const length2 = dx * dx + dy * dy;
+    const t = Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / length2));
+    return Math.hypot(x - (x1 + t * dx), y - (y1 + t * dy)) <= width / 2 ? 1 : 0;
+  },
+});
 const roundedRect = (x0, y0, x1, y1, rad, color) => ({
   color,
   cover: (x, y) => {
@@ -130,26 +139,58 @@ const roundedRect = (x0, y0, x1, y1, rad, color) => ({
   },
 });
 
+// ── Muxora route mark ─────────────────────────────────────────────────────
+function routeMark(color, width = 0.09) {
+  return [
+    capsule(0.2, 0.31, 0.37, 0.31, width, color),
+    capsule(0.37, 0.31, 0.5, 0.5, width, color),
+    capsule(0.8, 0.31, 0.63, 0.31, width, color),
+    capsule(0.63, 0.31, 0.5, 0.5, width, color),
+    capsule(0.2, 0.69, 0.37, 0.69, width, color),
+    capsule(0.37, 0.69, 0.5, 0.5, width, color),
+    capsule(0.8, 0.69, 0.63, 0.69, width, color),
+    capsule(0.63, 0.69, 0.5, 0.5, width, color),
+    circle(0.5, 0.5, width * 0.85, color),
+  ];
+}
+
 // ── tray template (black on transparent; macOS tints it) ──────────────────
-// Slightly chunkier than the 64px favicon so it reads at 16px.
 const BLACK = [0, 0, 0, 1];
-const trayShapes = [
-  ring(0.5, 0.5, 0.36, 0.115, 45, 80, BLACK), // gap top-right, like the mark
-  circle(0.5, 0.5, 0.185, BLACK),
-];
+const trayShapes = routeMark(BLACK, 0.105);
 fs.writeFileSync(path.join(assets, 'trayTemplate.png'), render(16, trayShapes));
 fs.writeFileSync(path.join(assets, 'trayTemplate@2x.png'), render(32, trayShapes));
 
-// ── app icon (1024, HIG grid: art occupies ~824/1024 rounded rect) ────────
-const BG = [0x09 / 255, 0x09 / 255, 0x0b / 255, 1]; // #09090b
-const FG = [0xfa / 255, 0xfa / 255, 0xfa / 255, 1]; // #fafafa
-const FG40 = [0xfa / 255, 0xfa / 255, 0xfa / 255, 0.4];
+// ── app icon (HIG grid: art occupies ~824/1024 rounded rect) ──────────────
+const BG = [0x4f / 255, 0x46 / 255, 0xe5 / 255, 1]; // indigo-600
+const FG = [1, 1, 1, 1];
 const inset = 100 / 1024, rectR = 180 / 1024;
-const appShapes = [
-  roundedRect(inset, inset, 1 - inset, 1 - inset, rectR, BG),
-  ring(0.5, 0.5, 232 / 1024, 45 / 1024, 45, 80, FG40),
-  circle(0.5, 0.5, 122 / 1024, FG),
-];
-fs.writeFileSync(path.join(assets, 'appicon_1024.png'), render(1024, appShapes));
+function appIcon(size) {
+  return render(size, [
+    roundedRect(inset, inset, 1 - inset, 1 - inset, rectR, BG),
+    ...routeMark(FG, 0.055),
+  ]);
+}
+const appPng = appIcon(1024);
+fs.writeFileSync(path.join(assets, 'appicon_1024.png'), appPng);
 
-console.log('icons written to', assets);
+// A dependency-free ICNS containing modern PNG-backed icon representations.
+// Keeping it generated from the same geometry prevents the macOS app and web
+// dashboard from drifting into two brands.
+const icnsParts = [
+  ['ic07', appIcon(128)],
+  ['ic08', appIcon(256)],
+  ['ic09', appIcon(512)],
+  ['ic10', appPng],
+].map(([type, png]) => {
+  const header = Buffer.alloc(8);
+  header.write(type, 0, 4, 'ascii');
+  header.writeUInt32BE(8 + png.length, 4);
+  return Buffer.concat([header, png]);
+});
+const icnsLength = 8 + icnsParts.reduce((sum, part) => sum + part.length, 0);
+const icnsHeader = Buffer.alloc(8);
+icnsHeader.write('icns', 0, 4, 'ascii');
+icnsHeader.writeUInt32BE(icnsLength, 4);
+fs.writeFileSync(path.join(assets, 'icon.icns'), Buffer.concat([icnsHeader, ...icnsParts]));
+
+console.log('Muxora icons written to', assets);

@@ -4,7 +4,8 @@
     "playground": "Entorno de pruebas",
     "keys": "Claves",
     "analytics": "Analíticas",
-    "premium": "Premium",
+    "workspace": "Equipo",
+    "premium": "Planes",
     "upgrade": "Actualizar",
     "settings": "Configuración",
     "signOut": "Cerrar sesión",
@@ -60,7 +61,7 @@
     "emailChanged": "Correo electrónico cambiado correctamente.",
     "passwordReset": "Contraseña restablecida correctamente. Por favor, inicia sesión.",
     "resetCodeDockerHint": "¿Usas Docker? El código está en el registro del contenedor: docker logs <container>.",
-    "desktopSessionFailed": "El panel no pudo iniciar sesión en el servidor local. Cierra FreeLLMAPI y vuelve a abrirlo."
+    "desktopSessionFailed": "El panel no pudo iniciar sesión en el servidor local. Cierra Muxora y vuelve a abrirlo."
   },
   "common": {
     "save": "Guardar",
@@ -166,7 +167,7 @@
     "autoUpdateCheck": "Comprobación automática de actualizaciones",
     "autoUpdateCheckHelp": "Consulta GitHub una vez al día para ver si hay una nueva versión y muestra un recordatorio. Desactivado de forma predeterminada.",
     "openReleases": "Abrir lanzamientos de GitHub",
-    "restartAfterUpdate": "Reinicia FreeLLMAPI cuando finalice la compilación."
+    "restartAfterUpdate": "Reinicia Muxora cuando finalice la compilación."
   },
   "models": {
     "title": "Modelos",
@@ -189,7 +190,7 @@
     "monthlyTokenBudget": "Presupuesto mensual de tokens",
     "remaining": "restante",
     "used": "usados",
-    "usedScopeHint": "Solo solicitudes de chat, desde el inicio de este mes natural, sumadas sobre todos los modelos de la cadena activa, incluidos los endpoints personalizados. El tráfico que envías a un proveedor fuera de FreeLLMAPI no se cuenta.",
+    "usedScopeHint": "Solo solicitudes de chat, desde el inicio de este mes natural, sumadas sobre todos los modelos de la cadena activa, incluidos los endpoints personalizados. El tráfico que envías a un proveedor fuera de Muxora no se cuenta.",
     "legendRemainingTitle": "Restante / presupuesto mensual de {name} ({platform})",
     "noPublishedQuota": "+{count} sin cuota publicada",
     "noPublishedQuotaTitle": "Estos modelos no tienen un presupuesto mensual de tokens documentado, así que no hay restante que mostrar.",
@@ -972,11 +973,11 @@
     "snapshotDescription": "Nivel gratuito: el catálogo se actualiza desde una instantánea mensual, comprobada automáticamente dos veces al día. Premium cambia esto a la fuente en vivo, actualizada cada 2 o 3 días.",
     "lastSyncProblem": "Problema en la última sincronización: {error}",
     "license": "Licencia",
-    "planAnnual": "Premium Anual",
-    "planLifetime": "Premium de por vida",
+    "planAnnual": "Live Anual",
+    "planLifetime": "Live de por vida",
     "expired": "Caducada",
     "inactive": "Inactiva",
-    "lifetimeNote": "Licencia de por vida: nunca caduca.",
+    "lifetimeNote": "Licencia Live de por vida: nunca caduca.",
     "renewsOn": "Se renueva el {date}.",
     "willNotRenew": "No se renovará. Premium hasta el {date}; después, esta instalación vuelve al catálogo mensual gratuito.",
     "keyInactive": "Esta clave ya no está activa. La aplicación sigue funcionando con el catálogo mensual gratuito.",
@@ -992,9 +993,9 @@
     "recoverKey": "Recupérala en el sitio web",
     "upsellTitle": "Pásate al directo por 19 $ al año",
     "upsellDescription": "Nuevos modelos gratuitos en cuanto existen, en lugar de 30 días después. Una clave, todos tus dispositivos. Cancela cuando quieras; el enrutador sigue siendo gratis para siempre.",
-    "goPremium": "Hazte Premium",
+    "goPremium": "Elegir Live",
     "bundled": "incluido",
-    "planGeneric": "Premium"
+    "planGeneric": "Live"
   },
   "languages": {
     "en": "English",

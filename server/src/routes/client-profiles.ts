@@ -17,13 +17,20 @@ const MAX_NAME_LEN = 100;
 // Generous ceiling — a system prompt is configuration, not a document.
 const MAX_PROMPT_LEN = 32_000;
 
+const roleSchema = z.enum(['member', 'developer', 'service']);
+const emailSchema = z.string().trim().email().max(254).or(z.literal('')).nullish();
+
 const createSchema = z.object({
   name: z.string().trim().min(1).max(MAX_NAME_LEN),
+  email: emailSchema,
+  role: roleSchema.default('member'),
   systemPrompt: z.string().max(MAX_PROMPT_LEN).nullish(),
 });
 
 const updateSchema = z.object({
   name: z.string().trim().min(1).max(MAX_NAME_LEN).optional(),
+  email: emailSchema,
+  role: roleSchema.optional(),
   // null clears the prompt (the profile key then authenticates without
   // injecting anything); absent leaves it untouched.
   systemPrompt: z.string().max(MAX_PROMPT_LEN).nullable().optional(),
@@ -37,9 +44,15 @@ interface ProfileRow {
   iv: string;
   auth_tag: string;
   system_prompt: string | null;
+  email: string | null;
+  role: 'member' | 'developer' | 'service';
   enabled: number;
   created_at: string;
   updated_at: string;
+  request_count?: number;
+  input_tokens?: number;
+  output_tokens?: number;
+  last_used_at?: string | null;
 }
 
 function maskedKeyFor(row: Pick<ProfileRow, 'encrypted_key' | 'iv' | 'auth_tag'>): string {
@@ -55,8 +68,16 @@ function toJson(row: ProfileRow) {
     id: row.id,
     name: row.name,
     maskedKey: maskedKeyFor(row),
+    email: row.email,
+    role: row.role,
     systemPrompt: row.system_prompt,
     enabled: row.enabled === 1,
+    usage: {
+      requests: Number(row.request_count ?? 0),
+      inputTokens: Number(row.input_tokens ?? 0),
+      outputTokens: Number(row.output_tokens ?? 0),
+      lastUsedAt: row.last_used_at ?? null,
+    },
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -80,7 +101,19 @@ function notFound(res: Response): void {
 }
 
 clientProfilesRouter.get('/', (_req: Request, res: Response) => {
-  const rows = getDb().prepare('SELECT * FROM client_profiles ORDER BY id').all() as ProfileRow[];
+  const rows = getDb().prepare(`
+    SELECT cp.*,
+           COUNT(r.id) AS request_count,
+           COALESCE(SUM(r.input_tokens), 0) AS input_tokens,
+           COALESCE(SUM(r.output_tokens), 0) AS output_tokens,
+           MAX(r.created_at) AS last_used_at
+    FROM client_profiles cp
+    LEFT JOIN requests r
+      ON r.client_profile_id = cp.id
+     AND r.created_at >= datetime('now', 'start of month')
+    GROUP BY cp.id
+    ORDER BY cp.id
+  `).all() as ProfileRow[];
   res.json(rows.map(toJson));
 });
 
@@ -93,10 +126,11 @@ clientProfilesRouter.post('/', (req: Request, res: Response) => {
   const key = mintClientProfileKey();
   const { encrypted, iv, authTag } = encrypt(key);
   const prompt = parsed.data.systemPrompt?.trim() || null;
+  const email = parsed.data.email?.trim() || null;
   const info = getDb().prepare(`
-    INSERT INTO client_profiles (name, token_hash, encrypted_key, iv, auth_tag, system_prompt)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `).run(parsed.data.name, hashClientProfileKey(key), encrypted, iv, authTag, prompt);
+    INSERT INTO client_profiles (name, email, role, token_hash, encrypted_key, iv, auth_tag, system_prompt)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(parsed.data.name, email, parsed.data.role, hashClientProfileKey(key), encrypted, iv, authTag, prompt);
   const row = getProfile(Number(info.lastInsertRowid))!;
   // The only time the full key leaves the server (besides rotate).
   res.status(201).json({ ...toJson(row), key });
@@ -113,16 +147,19 @@ clientProfilesRouter.patch('/:id', (req: Request, res: Response) => {
   const row = getProfile(id);
   if (!row) return notFound(res);
 
-  const { name, systemPrompt, enabled } = parsed.data;
+  const { name, email, role, systemPrompt, enabled } = parsed.data;
   const nextPrompt = systemPrompt === undefined
     ? row.system_prompt
     : (systemPrompt?.trim() || null);
+  const nextEmail = email === undefined ? row.email : (email?.trim() || null);
   getDb().prepare(`
     UPDATE client_profiles
-    SET name = ?, system_prompt = ?, enabled = ?, updated_at = datetime('now')
+    SET name = ?, email = ?, role = ?, system_prompt = ?, enabled = ?, updated_at = datetime('now')
     WHERE id = ?
   `).run(
     name ?? row.name,
+    nextEmail,
+    role ?? row.role,
     nextPrompt,
     enabled === undefined ? row.enabled : (enabled ? 1 : 0),
     id,

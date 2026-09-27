@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { isEmail } from '@/lib/validate'
 import { useI18n } from '@/i18n'
 import { toast } from '@/lib/toast'
+import { BRAND_NAME, BrandMark } from '@/brand'
 
 // Matches the server rule (routes/auth.ts zod schema).
 const PASSWORD_MIN = 8
@@ -118,9 +119,9 @@ function AuthForm({ mode, onAuthed }: { mode: 'setup' | 'login'; onAuthed: () =>
 
   return (
     <Centered>
-      <div className="mb-6 flex items-center gap-2">
-        <span className="inline-block size-2 rounded-full bg-foreground" />
-        <span className="font-semibold tracking-tight text-sm">FreeLLMAPI</span>
+      <div className="mb-6 flex items-center gap-2.5">
+        <BrandMark className="size-8" />
+        <span className="font-semibold tracking-[-0.025em] text-base">{BRAND_NAME}</span>
       </div>
       <div className="rounded-3xl border bg-card p-6">
         <h1 className="text-lg font-semibold tracking-tight">{isSetup ? t('auth.createYourAccount') : t('auth.signIn')}</h1>
@@ -256,9 +257,9 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
 
   return (
     <Centered>
-      <div className="mb-6 flex items-center gap-2">
-        <span className="inline-block size-2 rounded-full bg-foreground" />
-        <span className="font-semibold tracking-tight text-sm">FreeLLMAPI</span>
+      <div className="mb-6 flex items-center gap-2.5">
+        <BrandMark className="size-8" />
+        <span className="font-semibold tracking-[-0.025em] text-base">{BRAND_NAME}</span>
       </div>
       <div className="rounded-3xl border bg-card p-6">
         <h1 className="text-base font-medium">{t('auth.forgotPassword')}</h1>

@@ -4,6 +4,7 @@
     "playground": "Дитячий майданчик",
     "keys": "Ключі",
     "analytics": "Аналітика",
+    "workspace": "Workspace",
     "premium": "Преміум",
     "upgrade": "Оновлення",
     "settings": "Налаштування",
@@ -60,7 +61,7 @@
     "emailChanged": "E-mail успішно змінено.",
     "passwordReset": "Пароль скинуто. Увійдіть знову.",
     "resetCodeDockerHint": "Використовуєте Docker? Код знаходиться в лозі контейнера: docker logs <container>.",
-    "desktopSessionFailed": "Панель керування не змогла увійти на локальний сервер. Закрийте FreeLLMAPI і відкрийте його знову."
+    "desktopSessionFailed": "Панель керування не змогла увійти на локальний сервер. Закрийте Muxora і відкрийте його знову."
   },
   "common": {
     "save": "зберегти",
@@ -166,7 +167,7 @@
     "autoUpdateCheck": "Автоматична перевірка оновлень",
     "autoUpdateCheckHelp": "Раз на день перевіряє GitHub на новий випуск і показує нагадування. Типово вимкнено.",
     "openReleases": "Відкрити релізи GitHub",
-    "restartAfterUpdate": "Перезапустіть FreeLLMAPI після завершення збірки."
+    "restartAfterUpdate": "Перезапустіть Muxora після завершення збірки."
   },
   "models": {
     "title": "Моделі",
@@ -189,7 +190,7 @@
     "monthlyTokenBudget": "Місячний бюджет токенів",
     "remaining": "залишилося",
     "used": "використовується",
-    "usedScopeHint": "Chat requests only, since the start of this calendar month, summed over every model in the active chain — custom endpoints included. Traffic you send to a provider outside FreeLLMAPI is not counted.",
+    "usedScopeHint": "Chat requests only, since the start of this calendar month, summed over every model in the active chain — custom endpoints included. Traffic you send to a provider outside Muxora is not counted.",
     "legendRemainingTitle": "Remaining / monthly budget for {name} ({platform})",
     "noPublishedQuota": "+{count} with no published quota",
     "noPublishedQuotaTitle": "These models have no documented monthly token budget, so there is no remaining figure to show.",

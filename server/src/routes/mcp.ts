@@ -194,7 +194,7 @@ interface McpTool {
 
 const TOOLS: Record<string, McpTool> = {
   list_models: {
-    description: 'List the models this FreeLLMAPI router can serve, with context windows, tool support, and the parameters each model honors (supported_parameters). Defaults to only models that are usable right now.',
+    description: 'List the models this Muxora router can serve, with context windows, tool support, and the parameters each model honors (supported_parameters). Defaults to only models that are usable right now.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -267,7 +267,7 @@ function dispatchRpc(msg: JsonRpcRequest, id: number | string | null): unknown {
         protocolVersion: PROTOCOL_VERSION,
         capabilities: { tools: {} },
         serverInfo: { name: 'freellmapi', version: '1.0.0' },
-        instructions: 'FreeLLMAPI gateway introspection: list usable free models (with per-model supported_parameters), check provider/key health, read usage/cache/compression stats, and switch the routing strategy. Inference goes through the OpenAI-compatible /v1 endpoints, not MCP.',
+        instructions: 'Muxora gateway introspection: list usable free models (with per-model supported_parameters), check provider/key health, read usage/cache/compression stats, and switch the routing strategy. Inference goes through the OpenAI-compatible /v1 endpoints, not MCP.',
       });
     }
     case 'ping':

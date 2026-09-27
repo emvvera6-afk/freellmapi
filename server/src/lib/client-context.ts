@@ -6,6 +6,9 @@ export interface ClientContext {
   ip: string | null;
   userAgent: string | null;
   agent: ClientAgent | null;
+  /** Workspace access profile that authenticated this inference request. Null
+   *  for the owner/unified key and for work outside an HTTP request. */
+  clientProfileId: number | null;
 }
 
 // Request-scoped caller identity, readable from anywhere below the middleware
@@ -34,7 +37,7 @@ function clientLoggingEnabled(): boolean {
 
 export function clientContextMiddleware(req: Request, _res: Response, next: NextFunction): void {
   if (!clientLoggingEnabled()) {
-    storage.run({ ip: null, userAgent: null, agent: null }, next);
+    storage.run({ ip: null, userAgent: null, agent: null, clientProfileId: null }, next);
     return;
   }
   const ua = req.headers['user-agent'];
@@ -42,9 +45,18 @@ export function clientContextMiddleware(req: Request, _res: Response, next: Next
     ip: resolveClientIp(req),
     userAgent: typeof ua === 'string' ? ua.slice(0, 256) : null,
     agent: classifyClientAgent(req),
+    clientProfileId: null,
   }, next);
 }
 
+/** Attach the resolved workspace profile to the active request. resolveAuth()
+ * runs below clientContextMiddleware, so mutating this request-scoped object is
+ * safe and lets every downstream logRequest() call inherit the attribution. */
+export function setClientProfileContext(profileId: number): void {
+  const context = storage.getStore();
+  if (context) context.clientProfileId = profileId;
+}
+
 export function getClientContext(): ClientContext {
-  return storage.getStore() ?? { ip: null, userAgent: null, agent: null };
+  return storage.getStore() ?? { ip: null, userAgent: null, agent: null, clientProfileId: null };
 }
