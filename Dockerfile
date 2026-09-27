@@ -19,7 +19,9 @@ COPY server/package.json ./server/
 COPY client/package.json ./client/
 COPY cli/package.json ./cli/
 
-RUN npm ci
+# The lockfile may contain historical mirror URLs. Resolve every package from
+# the canonical registry so cloud builders are not coupled to that mirror.
+RUN npm ci --registry=https://registry.npmjs.org --replace-registry-host=always
 
 FROM deps AS build
 WORKDIR /app
