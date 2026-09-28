@@ -63,7 +63,7 @@ interface Catalog {
 
 ```typescript
 const PINNED_CATALOG_PUBKEY = `-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAq9yv4+3EeyMHKsfVYBhkcz1lYgIXSUeHNnN6tNgYX3k=
+MCowBQYDK2VwAyEAGgQ7O2o6GcmRZGWWudAFmnTrUveMpOwL9oOwY8UsQTw=
 -----END PUBLIC KEY-----`;
 
 // 抓取
@@ -260,7 +260,7 @@ startCatalogSync(scheduler: Scheduler)
 
 | 变量 | 默认值 | 用途 |
 |----------|---------|---------|
-| `CATALOG_BASE_URL` | `https://api.freellmapi.co` | 目录服务端点 |
+| `CATALOG_BASE_URL` | 本 fork 的目录服务(见 `server/src/lib/brand.ts`) | 目录服务端点 |
 | `CATALOG_PUBKEY` | 钉死 Ed25519 公钥 | 自托管目录覆盖 |
 | `CATALOG_SYNC_DISABLED` | `0` | 熔断开关（`1` = 禁用） |
 
