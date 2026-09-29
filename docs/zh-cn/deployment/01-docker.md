@@ -2,7 +2,7 @@
 
 # Docker
 
-生产镜像、Compose 快速开始，以及在容器里运行 FreeLLMAPI 的一切：持久化、端口、健康检查和网络坑点。
+生产镜像、Compose 快速开始，以及在容器里运行 TokenHarbor 的一切：持久化、端口、健康检查和网络坑点。
 
 - [镜像](#镜像)
 - [Compose 快速开始](#compose-快速开始)
@@ -15,10 +15,10 @@
 
 ## 镜像
 
-FreeLLMAPI 发布单个生产镜像，内含 Express 服务器和构建好的 React 仪表盘：
+TokenHarbor 发布单个生产镜像，内含 Express 服务器和构建好的 React 仪表盘：
 
 ```bash
-docker pull ghcr.io/tashfeenahmed/freellmapi:latest   # 或固定到某个发布版本，如 :v1.2.3
+docker pull ghcr.io/emvvera6-afk/freellmapi:latest   # 或固定到某个发布版本，如 :v1.2.3
 ```
 
 已发布的标签：`latest`（默认分支）、`v*.*.*`（git release 标签）和 `sha-<commit>`。镜像是多架构的（`linux/amd64` + `linux/arm64`，所以树莓派也能跑）。
@@ -36,7 +36,7 @@ docker pull ghcr.io/tashfeenahmed/freellmapi:latest   # 或固定到某个发布
 前置条件：Docker、Docker Compose、OpenSSL。macOS/Linux：
 
 ```bash
-git clone https://github.com/tashfeenahmed/freellmapi.git
+git clone https://github.com/emvvera6-afk/freellmapi.git
 cd freellmapi
 
 # 生成用于静态存储密钥的加密密钥
@@ -97,7 +97,7 @@ runtime 阶段在 `EXPOSE 3001` 之前切换到 `USER node`。服务器数据目
 
 宿主机一切正常，容器里的提供方却不可达？容器有自己独立的网络栈，有两件在你机器上顺理成章的事不会自动延续过去：
 
-- **`127.0.0.1` 上的代理不是你的机器。** 在容器内部，环回地址指容器自己。如果你经由宿主机上的代理客户端（Clash、v2rayN、sing-box 或公司代理）访问提供方，就让 FreeLLMAPI 指向宿主机：`PROXY_URL=socks5h://host.docker.internal:7890`。随附的 `docker-compose.yml` 通过 `extra_hosts` 把 `host.docker.internal` 映射到宿主机网关，所以在原生 Linux Docker 上和 Docker Desktop 里都可用。代理还得接受来自环回之外的连接（在 Clash 里是 `allow-lan: true`）。更多细节见 [../env/03-outbound-proxies.md](../env/03-outbound-proxies.md#docker127001-指的是容器)。
+- **`127.0.0.1` 上的代理不是你的机器。** 在容器内部，环回地址指容器自己。如果你经由宿主机上的代理客户端（Clash、v2rayN、sing-box 或公司代理）访问提供方，就让 TokenHarbor 指向宿主机：`PROXY_URL=socks5h://host.docker.internal:7890`。随附的 `docker-compose.yml` 通过 `extra_hosts` 把 `host.docker.internal` 映射到宿主机网关，所以在原生 Linux Docker 上和 Docker Desktop 里都可用。代理还得接受来自环回之外的连接（在 Clash 里是 `allow-lan: true`）。更多细节见 [../env/03-outbound-proxies.md](../env/03-outbound-proxies.md#docker127001-指的是容器)。
 - **纯 IPv6 的宿主机需要在 Docker 里启用 IPv6。** 默认桥接网络只有 IPv4，所以在没有 IPv4 路由的主机上容器什么都够不着，DNS 也一样。在 `/etc/docker/daemon.json` 中以 `"ipv6": true`、`"ip6tables": true` 和一段 `"fixed-cidr-v6"` 网段启用，然后重启 Docker。
 
 想分辨自己撞上的是哪种情况，直接问容器本身：

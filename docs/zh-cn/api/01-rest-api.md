@@ -265,7 +265,7 @@ curl http://localhost:3001/v1/embeddings \
 
 ## Anthropic 与 Claude 客户端
 
-FreeLLMAPI 同样会讲 Anthropic 的 Messages API，所以任何为 Claude 写的东西，包括 **Claude Code** 和官方 Anthropic SDK，都能跑在你的免费池上。把客户端指向你服务器的 **根地址**（Anthropic 客户端会自己拼上 `/v1/messages`），用统一密钥认证即可。`x-api-key` 和 `Authorization: Bearer` 两种方式都接受。
+TokenHarbor 同样会讲 Anthropic 的 Messages API，所以任何为 Claude 写的东西，包括 **Claude Code** 和官方 Anthropic SDK，都能跑在你的免费池上。把客户端指向你服务器的 **根地址**（Anthropic 客户端会自己拼上 `/v1/messages`），用统一密钥认证即可。`x-api-key` 和 `Authorization: Bearer` 两种方式都接受。
 
 ```bash
 curl http://localhost:3001/v1/messages \

@@ -2,7 +2,7 @@
 
 # 环境变量参考
 
-FreeLLMAPI 从 `.env` 读取的全部变量，按主题分组。默认值和说明仅依据 [`.env.example`](../../../.env.example) 中的注释与取值推导而来。在 `.env.example` 中以注释形式出现的变量是可选的；此处列出的是它们文档记载的默认值。
+TokenHarbor 从 `.env` 读取的全部变量，按主题分组。默认值和说明仅依据 [`.env.example`](../../../.env.example) 中的注释与取值推导而来。在 `.env.example` 中以注释形式出现的变量是可选的；此处列出的是它们文档记载的默认值。
 
 - [服务器与绑定](#服务器与绑定)
 - [出站代理（本地目的地）](#出站代理本地目的地)
@@ -37,7 +37,7 @@ FreeLLMAPI 从 `.env` 读取的全部变量，按主题分组。默认值和说�
 | --- | --- | --- |
 | `ENCRYPTION_KEY` | 占位值；生产环境必填，非生产环境使用自动生成的密钥文件 | 用于 API 密钥存储的服务器加密密钥。生成方式：`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`。优先级：先看这个环境变量，再看 SQLite 数据库旁边的 `.encryption-key` 文件（不在数据库里面，权限 0600），再看旧 settings 表里的遗留密钥（首次启动时迁移到文件），最后才新生成一把密钥。参见 [02-security-and-keys.md](02-security-and-keys.md)。 |
 | `FREEAPI_BLOCK_PRIVATE_PROVIDER_URLS` | 未设置——自定义提供方仍然允许 localhost 和私有局域网地址 | 自定义提供方的 URL 策略。云元数据和链路本地地址（`169.254.169.254`、`metadata.google.internal`、`fe80::/10` 等）作为自定义提供方 base URL 时一律被阻止。设为 `true` 可以连环回地址和 RFC1918/ULA 私有网段一起阻止——把服务放在 VPS 或任何别人能访问到仪表盘的地方时建议开启。 |
-| `FREEAPI_DB_DIR_HARDENING` | 在安全的前提下自动启用 | 是否把存放数据库的目录限制为本账户可见，这样 SQLite 的 `-wal`/`-shm` 边车文件也能得到保护（它们在第一次写入时才创建，任何启动期的权限检查都来不及顾及）。对默认的 `server/data` 目录以及 FreeLLMAPI 自行创建的目录会自动执行；`FREEAPI_DB_PATH` 指向某个已存在的目录时会跳过，因为那里可能是共享位置。设为 `1` 强制启用，设为 `0` 彻底关闭。 |
+| `FREEAPI_DB_DIR_HARDENING` | 在安全的前提下自动启用 | 是否把存放数据库的目录限制为本账户可见，这样 SQLite 的 `-wal`/`-shm` 边车文件也能得到保护（它们在第一次写入时才创建，任何启动期的权限检查都来不及顾及）。对默认的 `server/data` 目录以及 TokenHarbor 自行创建的目录会自动执行；`FREEAPI_DB_PATH` 指向某个已存在的目录时会跳过，因为那里可能是共享位置。设为 `1` 强制启用，设为 `0` 彻底关闭。 |
 
 首次运行说明：第一个仪表盘账户通常在同一台机器的浏览器里创建，无需额外步骤。如果服务器能被其他设备访问到，创建这第一个账户还需要一个一次性的安装码，它会在尚无账户时的启动阶段打印到服务器日志中。
 
@@ -68,7 +68,7 @@ FreeLLMAPI 从 `.env` 读取的全部变量，按主题分组。默认值和说�
 | `REQUEST_MAX_TOKENS_BUDGET` | `0`（关闭） | 按请求的词元护栏：估算输入词元加所请求的 max_tokens 必须落在这个上限之内，否则在任何提供方被尝试之前就以 413 拒绝请求；没有发送 max_tokens 的请求，其输出会被截断到剩余额度。可在运行时通过 `request_max_tokens_budget` 设置键调整（仪表盘 API `PUT /api/settings/guardrails`）。 |
 | `MAX_CONSECUTIVE_UPSTREAM_FAILS` | `0`（关闭） | 故障转移断路器：单个请求内连续上游失败达到这个次数后，以 503 终止故障转移链，而不是在一个不健康的池子里试遍每个剩余候选。可在运行时通过 `max_consecutive_upstream_fails` 设置键调整。 |
 | `MODELSCOPE_VALIDATE_CACHE_MS` | `86400000`（24 小时） | ModelScope（魔搭）用一次消耗额度的单词元聊天补全来校验 API 密钥（`GET /v1/models` 不做鉴权），每次探测都要花费魔粒额度——实测每个超档请求约 2 魔粒。为了不让每 5 分钟一轮的健康检查每天烧掉约 288 次付费探测，校验成功后会按密钥缓存这么长时间（毫秒）。`0` 表示每轮都探测；被撤销的密钥仍会被下一次真实请求的 401 抓住。 |
-| `FREELLMAPI_CONTEXT_HANDOFF` | 关闭 | 模型切换时的上下文交接。启用后（`on_model_switch`），每当一个会话从一个模型切换到另一个（例如发生故障转移之后），FreeLLMAPI 会向出站请求注入一条精简的系统消息。 |
+| `FREELLMAPI_CONTEXT_HANDOFF` | 关闭 | 模型切换时的上下文交接。启用后（`on_model_switch`），每当一个会话从一个模型切换到另一个（例如发生故障转移之后），TokenHarbor 会向出站请求注入一条精简的系统消息。 |
 
 ## 出站代理
 
@@ -110,12 +110,12 @@ FreeLLMAPI 从 `.env` 读取的全部变量，按主题分组。默认值和说�
 | `SERVER_LOGS_RETENTION_DAYS` | `7` | 仪表盘日志查看器后面的持久化服务器日志。只有 warn/error 行会写入数据库（实时视图是内存环），所以这些界限比上面的分析界限紧得多。设为 `0` 取消此限制。 |
 | `SERVER_LOGS_MAX_ROWS` | `50000` | 持久化服务器日志的行数上限。设为 `0` 取消此限制。 |
 | `FREEAPI_DB_PATH` | 默认位置，紧邻 server 构建产物 | 可选的 SQLite 位置覆盖。适合只有某一个目录做了持久化挂载的主机，或者想把数据库放到 `server/data` 之外的场景。示例：`/app/server/data/freellmapi.db`。 |
-| `FREEAPI_DB_BACKUP_PATH` | 未设置 | 可选的加密 SQLite 备份目标（文件路径）。启动时若配置的数据库文件缺失，FreeLLMAPI 会恢复这份备份；运行期间则定期上传新的备份。 |
+| `FREEAPI_DB_BACKUP_PATH` | 未设置 | 可选的加密 SQLite 备份目标（文件路径）。启动时若配置的数据库文件缺失，TokenHarbor 会恢复这份备份；运行期间则定期上传新的备份。 |
 | `FREEAPI_DB_BACKUP_URL` | 未设置 | HTTP(S) 备份目标，上面路径的替代方案。 |
 | `FREEAPI_DB_BACKUP_TOKEN` | 未设置 | 向 `FREEAPI_DB_BACKUP_URL` 上传时可选的 bearer 令牌。 |
 | `FREEAPI_DB_BACKUP_KEY` | 省略时使用 `ENCRYPTION_KEY` | 备份信封专用的 64 位十六进制密钥，可与主密钥分开。 |
 | `FREEAPI_DB_BACKUP_INTERVAL_MS` | `300000`（5 分钟） | 后台备份之间的间隔。 |
-| `FREEAPI_CONFIG_PATH` | 未设置 | 可选的声明式启动配置：指向一个 JSON 文件的路径，每次启动都会在迁移之后幂等地应用。示例：`/app/server/data/freellmapi.config.json`。 |
+| `FREEAPI_CONFIG_PATH` | 未设置 | 可选的声明式启动配置：指向一个 JSON 文件的路径，每次启动都会在迁移之后幂等地应用。示例：`/app/server/data/tokenharbor.onrender.comnfig.json`。 |
 | `FREEAPI_CONFIG_JSON` | 未设置 | 同样的声明式配置，以内联方式而非文件给出，例如 `{"keys":[{"platform":"groq","key":"gsk_...","label":"main"}],"routing":{"strategy":"balanced"}}`。 |
 | `FREELLMAPI_UPDATE_CHECK` | 启用 | 手动的应用更新检查器。设为 `off` 可把它从设置页隐藏，并阻止 Git 发现和对外发出的更新检查请求。这也会一并关掉自动版本提醒——那是另一个独立的仪表盘设置项（设置 > 通用），在被打开之前始终保持关闭。 |
 | `FREELLMAPI_UPDATE_GITHUB_TOKEN` | 空（匿名检查） | 仅用于对 GitHub 做更新检查的令牌。检查器默认匿名；只有在需要更高限额时才使用窄权限令牌。通用的 `GITHUB_TOKEN` 会被有意忽略。 |

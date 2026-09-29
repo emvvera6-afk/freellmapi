@@ -225,5 +225,5 @@ Doc revision history for `docs/architecture/`, seeded from commits touching arch
 
 ## 2025 — Foundation
 
-- **04e1503** Initial release of FreeLLMAPI
+- **04e1503** Initial release of TokenHarbor
   - Basic router, rate limiting, provider adapters, SQLite storage

@@ -6,7 +6,7 @@
 
 ## 1. 概览
 
-目录同步把本地模型目录与 `freellmapi.co` 的发布目录保持同步。它**每天两次**（及按需）跑、抓取**签名目录**、对**钉死的 Ed25519 公钥**验签、并**事务性**应用到本地 SQLite。
+目录同步把本地模型目录与 `tokenharbor.onrender.com` 的发布目录保持同步。它**每天两次**（及按需）跑、抓取**签名目录**、对**钉死的 Ed25519 公钥**验签、并**事务性**应用到本地 SQLite。
 
 ### 两层
 
@@ -63,7 +63,7 @@ interface Catalog {
 
 ```typescript
 const PINNED_CATALOG_PUBKEY = `-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAq9yv4+3EeyMHKsfVYBhkcz1lYgIXSUeHNnN6tNgYX3k=
+MCowBQYDK2VwAyEAGgQ7O2o6GcmRZGWWudAFmnTrUveMpOwL9oOwY8UsQTw=
 -----END PUBLIC KEY-----`;
 
 // 抓取
@@ -260,7 +260,7 @@ startCatalogSync(scheduler: Scheduler)
 
 | 变量 | 默认值 | 用途 |
 |----------|---------|---------|
-| `CATALOG_BASE_URL` | `https://api.freellmapi.co` | 目录服务端点 |
+| `CATALOG_BASE_URL` | 本 fork 的目录服务(见 `server/src/lib/brand.ts`) | 目录服务端点 |
 | `CATALOG_PUBKEY` | 钉死 Ed25519 公钥 | 自托管目录覆盖 |
 | `CATALOG_SYNC_DISABLED` | `0` | 熔断开关（`1` = 禁用） |
 

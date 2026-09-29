@@ -780,7 +780,7 @@ function UpdateChecker({ active }: { active: boolean }) {
   return (
     <>
       <Row
-        label="FreeLLMAPI"
+        label="TokenHarbor"
         hint={t('settings.contactsGithub')}
         control={(
           <div className="flex items-center gap-2 text-sm tabular-nums">

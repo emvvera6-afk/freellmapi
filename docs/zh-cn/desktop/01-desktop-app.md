@@ -4,7 +4,7 @@
 
 ## 包清单
 
-`desktop/package.json` `freellmapi-desktop@0.9.2` —— Electron `38.8.6`、`better-sqlite3@12.10.0`、`electron-builder@25.1.8`、`esbuild@0.24.0`。入口 `build/main.mjs`（`type: module`）。AppId `com.freellmapi.desktop`，发布 `github:tashfeenahmed/freellmapi`（`desktop/electron-builder.yml`）。`asar` + `client-dist` 位于 `extraResources`；按系统划分的签名目标（mac `dmg`+`zip` `arm64`+`x64` 经 `refresh-mac-update-metadata.mjs` 签名/公证/钉装、win `nsis`+`zip` `x64`、linux `AppImage`+`deb`+`tar.xz`+`rpm` `x64` 自 #981 `d8fae97` 起）。
+`desktop/package.json` `freellmapi-desktop@0.9.2` —— Electron `38.8.6`、`better-sqlite3@12.10.0`、`electron-builder@25.1.8`、`esbuild@0.24.0`。入口 `build/main.mjs`（`type: module`）。AppId `com.freellmapi.desktop`，发布 `github:emvvera6-afk/freellmapi`（`desktop/electron-builder.yml`）。`asar` + `client-dist` 位于 `extraResources`；按系统划分的签名目标（mac `dmg`+`zip` `arm64`+`x64` 经 `refresh-mac-update-metadata.mjs` 签名/公证/钉装、win `nsis`+`zip` `x64`、linux `AppImage`+`deb`+`tar.xz`+`rpm` `x64` 自 #981 `d8fae97` 起）。
 
 ## 构建流水线
 
@@ -26,7 +26,7 @@ bundle:server → build:main / build:preload → stage:client → electron-build
 | `<userData>/backups` | 服务端转储（`services/backups.ts` `dataDir()`） |
 | `Resources/client-dist` | 已打包客户端；开发环境：经 `FREEAPI_REPO` 的 `client/dist` |
 
-`~/Library/Application Support/FreeLLMAPI`（macOS）、`%APPDATA%/FreeLLMAPI`（Windows）、`~/.config/FreeLLMAPI`（Linux）。
+`~/Library/Application Support/TokenHarbor`（macOS）、`%APPDATA%/TokenHarbor`（Windows）、`~/.config/TokenHarbor`（Linux）。
 
 ## 内嵌 server-host
 
@@ -50,7 +50,7 @@ bundle:server → build:main / build:preload → stage:client → electron-build
 
 ## 托盘 / 悬浮窗 / 窗口
 
-- `desktop/src/tray.ts` —— 菜单栏图标、`打开日志文件夹` / `打开备份文件夹`（`logger.ts:openLogsFolder`/`openBackupsFolder` 经 `shell.openPath`）、`打开 FreeLLMAPI`、退出。
+- `desktop/src/tray.ts` —— 菜单栏图标、`打开日志文件夹` / `打开备份文件夹`（`logger.ts:openLogsFolder`/`openBackupsFolder` 经 `shell.openPath`）、`打开 TokenHarbor`、退出。
 - `desktop/src/popover.ts` —— 用于快捷访问的悬浮窗。
 - `desktop/src/window.ts` —— 主 BrowserWindow 外观。
 

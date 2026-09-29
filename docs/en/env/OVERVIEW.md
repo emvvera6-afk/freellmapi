@@ -4,7 +4,7 @@
 
 ## Scope
 
-This domain documents FreeLLMAPI's runtime configuration surface: every variable the server reads from `.env`, how provider API keys are encrypted at rest, and how outbound traffic can be steered through proxies. The single source of truth is [`.env.example`](../../../.env.example) at the repository root; the references here are derived from it (and from the code paths it describes) and never invent values.
+This domain documents TokenHarbor's runtime configuration surface: every variable the server reads from `.env`, how provider API keys are encrypted at rest, and how outbound traffic can be steered through proxies. The single source of truth is [`.env.example`](../../../.env.example) at the repository root; the references here are derived from it (and from the code paths it describes) and never invent values.
 
 For getting an install running in the first place, see [Install & deploy](../install/01-install.md).
 

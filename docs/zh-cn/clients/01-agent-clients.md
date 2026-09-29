@@ -16,7 +16,7 @@
 
 ## OpenAI 兼容客户端
 
-任何能指向 OpenAI 兼容 base URL 的客户端都能使用 FreeLLMAPI：
+任何能指向 OpenAI 兼容 base URL 的客户端都能使用 TokenHarbor：
 
 - **LangChain、LlamaIndex、官方 OpenAI SDK**：把 `base_url` 设为
   `http://localhost:3001/v1`，使用仪表盘里的统一密钥。
@@ -97,19 +97,19 @@ hermes -z "Say hello"
 ### QwenPaw
 
 [QwenPaw](https://github.com/agentscope-ai/QwenPaw) 支持使用 OpenAI
-`chat.completions` API 的自定义提供方。先启动 FreeLLMAPI，并从其仪表盘创建或复制统一密钥，
+`chat.completions` API 的自定义提供方。先启动 TokenHarbor，并从其仪表盘创建或复制统一密钥，
 然后在 QwenPaw Console 中打开 **设置 → 模型**：
 
 1. 在 **提供方** 下选择 **添加提供方**。
-2. 填写 **提供方 ID**（例如 `freellmapi`）和 **提供方名称**（例如 `FreeLLMAPI`），
+2. 填写 **提供方 ID**（例如 `freellmapi`）和 **提供方名称**（例如 `TokenHarbor`），
    并将 API 兼容模式设为 OpenAI `chat.completions`。
 3. 进入该提供方的设置页，将 **Base URL** 设为 `http://localhost:3001/v1`，
-   将 **API 密钥** 设为 FreeLLMAPI 统一密钥。
-4. 在该提供方的模型页面添加模型。**模型 ID** 可填 `auto` 让 FreeLLMAPI 自动路由，
+   将 **API 密钥** 设为 TokenHarbor 统一密钥。
+4. 在该提供方的模型页面添加模型。**模型 ID** 可填 `auto` 让 TokenHarbor 自动路由，
    或从 `GET http://localhost:3001/v1/models` 复制当前可用的模型 id。
 5. 保存后把该模型设为默认（或在单次对话中选用），并发一条消息验证。
 
-如果 QwenPaw 在容器中运行，`localhost` 指向的是该容器，而不是运行 FreeLLMAPI 的宿主机。
+如果 QwenPaw 在容器中运行，`localhost` 指向的是该容器，而不是运行 TokenHarbor 的宿主机。
 请改用 QwenPaw 容器能够访问的主机名或宿主机网关地址，并保留 `/v1` 后缀。不要把统一密钥
 放进 URL、截图或 issue 报告。当前 Console 字段名称以 QwenPaw 的
 [官方模型配置指南](https://qwenpaw.agentscope.io/docs/models)为准。
@@ -179,15 +179,15 @@ claude mcp add --transport http freellmapi http://localhost:3001/mcp \
 
 任何说 Streamable HTTP 的 MCP 客户端都一样：指向 `/mcp`，用统一密钥作 Bearer 令牌。
 
-FreeLLMAPI 设计为本地优先、单用户。你的提供方密钥留在你的 SQLite 里，静态加密，请求从你的机器直达你启用的上游提供方。
+TokenHarbor 设计为本地优先、单用户。你的提供方密钥留在你的 SQLite 里，静态加密，请求从你的机器直达你启用的上游提供方。
 
 ## VS Code 幽灵文本自动完成
 
-FreeLLMAPI 暴露 `/v1/completions` 给发旧版 OpenAI prompt/suffix 请求的编辑器自动完成客户端。Continue 配置示例：
+TokenHarbor 暴露 `/v1/completions` 给发旧版 OpenAI prompt/suffix 请求的编辑器自动完成客户端。Continue 配置示例：
 
 ```yaml
 models:
-  - name: FreeLLMAPI Autocomplete
+  - name: TokenHarbor Autocomplete
     provider: openai
     model: auto
     apiBase: http://localhost:3001/v1
@@ -199,10 +199,10 @@ models:
 
 ## 上下文交接
 
-当 FreeLLMAPI 在对话中途故障转移到另一个模型（额度、限流、冷却），新模型不知道它在接别人的活。**上下文交接**往出站请求里注入一条精简的 `system` 消息，精确告诉新模型这事：
+当 TokenHarbor 在对话中途故障转移到另一个模型（额度、限流、冷却），新模型不知道它在接别人的活。**上下文交接**往出站请求里注入一条精简的 `system` 消息，精确告诉新模型这事：
 
 ```
-FreeLLMAPI context handoff:
+TokenHarbor context handoff:
 You are taking over an ongoing conversation from another model (groq:llama-3 → google:gemini-flash).
 Continue the user's task using the conversation context already provided in this request.
 Do not restart the task, re-ask already answered setup questions, or discard prior tool results.
@@ -227,4 +227,4 @@ FREELLMAPI_CONTEXT_HANDOFF=on_model_switch
 - 会话键：有 `X-Session-Id` 头则用它，否则用首条用户消息的 SHA-1（同粘性会话）。
 - 存储纯内存。不写磁盘、不记日志。
 
-> **重要：** 上下文交接改善了经由 FreeLLMAPI 路由的对话的连贯性。它无法恢复提供方内部的隐藏状态，也无法挽回从未发给代理的消息。
+> **重要：** 上下文交接改善了经由 TokenHarbor 路由的对话的连贯性。它无法恢复提供方内部的隐藏状态，也无法挽回从未发给代理的消息。

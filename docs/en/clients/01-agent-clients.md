@@ -16,7 +16,7 @@
 
 ## OpenAI-compatible clients
 
-Any client that can target an OpenAI-compatible base URL can use FreeLLMAPI:
+Any client that can target an OpenAI-compatible base URL can use TokenHarbor:
 
 - **LangChain, LlamaIndex, official OpenAI SDKs**: set `base_url` to
   `http://localhost:3001/v1` and use the unified key from the dashboard.
@@ -210,24 +210,24 @@ page's "seen recently" badge keys on. `HERMES_HOME` is honoured when set.
 ### QwenPaw
 
 [QwenPaw](https://github.com/agentscope-ai/QwenPaw) supports custom providers
-that use the OpenAI `chat.completions` API. Start FreeLLMAPI, create or copy a
+that use the OpenAI `chat.completions` API. Start TokenHarbor, create or copy a
 unified key from its dashboard, then open **Settings → Models** in the QwenPaw
 Console:
 
 1. Under **Providers**, choose **Add Provider**.
 2. Give it a **Provider ID** such as `freellmapi` and a **Provider Name** such
-   as `FreeLLMAPI`, and set the API compatibility mode to OpenAI
+   as `TokenHarbor`, and set the API compatibility mode to OpenAI
    `chat.completions`.
 3. Open the new provider's settings and set **Base URL** to
-   `http://localhost:3001/v1` and **API Key** to your FreeLLMAPI unified key.
+   `http://localhost:3001/v1` and **API Key** to your TokenHarbor unified key.
 4. On the provider's models page, add a model. Use `auto` as the **Model ID**
-   to let FreeLLMAPI route the request, or copy a current id from
+   to let TokenHarbor route the request, or copy a current id from
    `GET http://localhost:3001/v1/models`.
 5. Save, then pick the model as the default (or per chat) and send a test
    message.
 
 If QwenPaw runs in a container, `localhost` refers to that container rather
-than the host running FreeLLMAPI. Use a hostname or host-gateway address that
+than the host running TokenHarbor. Use a hostname or host-gateway address that
 the QwenPaw container can reach, while keeping the `/v1` suffix. Do not put the
 unified key in a URL, screenshot, or issue report. See QwenPaw's
 [official model configuration guide](https://qwenpaw.agentscope.io/docs/models)
@@ -314,17 +314,17 @@ claude mcp add --transport http freellmapi http://localhost:3001/mcp \
 Any MCP client that speaks Streamable HTTP works the same way: point it at `/mcp` with the
 unified key as a Bearer token.
 
-FreeLLMAPI is local-first and single-user by design. Your provider keys stay in
+TokenHarbor is local-first and single-user by design. Your provider keys stay in
 your SQLite database, encrypted at rest, and requests go from your machine to the
 upstream providers you enabled.
 
 ## VS Code ghost-text autocomplete (Continue)
 
-FreeLLMAPI exposes `/v1/completions` for editor autocomplete clients that send legacy OpenAI prompt/suffix requests. Example Continue config:
+TokenHarbor exposes `/v1/completions` for editor autocomplete clients that send legacy OpenAI prompt/suffix requests. Example Continue config:
 
 ```yaml
 models:
-  - name: FreeLLMAPI Autocomplete
+  - name: TokenHarbor Autocomplete
     provider: openai
     model: auto
     apiBase: http://localhost:3001/v1
@@ -336,10 +336,10 @@ models:
 
 ## Context Handoff
 
-When FreeLLMAPI falls over to a different model mid-conversation (quota, rate limit, cooldown), the new model has no idea it is picking up someone else's task. **Context handoff** adds a single compact `system` message to the outbound request that tells the new model exactly that:
+When TokenHarbor falls over to a different model mid-conversation (quota, rate limit, cooldown), the new model has no idea it is picking up someone else's task. **Context handoff** adds a single compact `system` message to the outbound request that tells the new model exactly that:
 
 ```
-FreeLLMAPI context handoff:
+TokenHarbor context handoff:
 You are taking over an ongoing conversation from another model (groq:llama-3 → google:gemini-flash).
 Continue the user's task using the conversation context already provided in this request.
 Do not restart the task, re-ask already answered setup questions, or discard prior tool results.
@@ -364,4 +364,4 @@ FREELLMAPI_CONTEXT_HANDOFF=on_model_switch
 - Session key: `X-Session-Id` header if present, otherwise SHA-1 of the first user message (same as sticky sessions).
 - Storage is in-memory only. Nothing is written to disk or logged.
 
-> **Important:** Context Handoff improves continuity for conversations routed through FreeLLMAPI. It cannot recover provider-internal hidden state or messages that were never sent to the proxy.
+> **Important:** Context Handoff improves continuity for conversations routed through TokenHarbor. It cannot recover provider-internal hidden state or messages that were never sent to the proxy.

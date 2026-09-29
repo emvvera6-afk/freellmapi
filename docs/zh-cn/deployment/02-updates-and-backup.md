@@ -39,7 +39,7 @@ docker compose pull && docker compose up -d
 
 要紧的东西都集中在一个地方：命名卷 `freellmapi-data`，挂载于 `/app/server/data`，里面有 SQLite 数据库（`freeapi.db`，或 `FREEAPI_DB_PATH` 指向的位置）、它的 `-wal`/`-shm` 边车文件，以及开发式安装的 `.encryption-key` 文件。把它们作为整体一起备份，并妥善保管配套的 `ENCRYPTION_KEY`——没有它，备份下来的提供方密钥只是无法解密的密文。
 
-内置加密备份（推荐，零停机）。FreeLLMAPI 可以按计划推送活动数据库的加密备份：
+内置加密备份（推荐，零停机）。TokenHarbor 可以按计划推送活动数据库的加密备份：
 
 ```env
 FREEAPI_DB_BACKUP_PATH=/app/server/data/freellmapi.db.backup
@@ -50,7 +50,7 @@ FREEAPI_DB_BACKUP_KEY=64-char-hex-backup-key        # 默认取 ENCRYPTION_KEY
 FREEAPI_DB_BACKUP_INTERVAL_MS=300000
 ```
 
-恢复语义：启动时若配置的数据库文件缺失，FreeLLMAPI 会在迁移运行之前恢复备份；服务器运行期间则定期上传新的加密备份。在临时磁盘的主机上，这是主要的保护手段。
+恢复语义：启动时若配置的数据库文件缺失，TokenHarbor 会在迁移运行之前恢复备份；服务器运行期间则定期上传新的加密备份。在临时磁盘的主机上，这是主要的保护手段。
 
 卷快照（纯 Docker 做法）。标准模式原样适用：
 
@@ -63,7 +63,7 @@ docker run --rm -v freellmapi-data:/data -v "$PWD":/backup alpine \
 
 ## 声明式配置与目录控制项（#f4cd7b4）
 
-对需要可复现的 Docker/服务器安装，FreeLLMAPI 可以在每次启动时应用一份 JSON 配置。设置 `FREEAPI_CONFIG_PATH=/path/to/freellmapi.config.json`，或者把同样的 JSON 内联进 `FREEAPI_CONFIG_JSON`。应用过程是幂等的：已有的密钥、自定义提供方、模型编辑、回退行和路由设置都会被更新而不是重复添加，且发生在每次启动的迁移之后。
+对需要可复现的 Docker/服务器安装，TokenHarbor 可以在每次启动时应用一份 JSON 配置。设置 `FREEAPI_CONFIG_PATH=/path/to/tokenharbor.onrender.comnfig.json`，或者把同样的 JSON 内联进 `FREEAPI_CONFIG_JSON`。应用过程是幂等的：已有的密钥、自定义提供方、模型编辑、回退行和路由设置都会被更新而不是重复添加，且发生在每次启动的迁移之后。
 
 ```json
 {
@@ -103,4 +103,4 @@ docker run --rm -v freellmapi-data:/data -v "$PWD":/backup alpine \
 }
 ```
 
-目录方面：安装会从经过签名的目录订阅源保持模型名册最新（完整目录见 freellmapi.co/models），所以升级之外无需手工维护名册。
+目录方面：安装会从经过签名的目录订阅源保持模型名册最新（完整目录见 tokenharbor.onrender.com/models），所以升级之外无需手工维护名册。

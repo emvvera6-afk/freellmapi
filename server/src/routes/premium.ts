@@ -10,6 +10,7 @@ import {
   refreshLicenseStatus,
   syncCatalog,
 } from '../services/catalog-sync.js';
+import { BRAND_PREMIUM_SITE_URL } from '../lib/brand.js';
 
 export const premiumRouter = Router();
 
@@ -25,8 +26,9 @@ function statusPayload() {
     maskedKey: key ? maskKey(key) : null,
     license: getCachedLicenseStatus(),
     catalog: getSyncState(),
-    // Where "Go Premium" / "recover key" links point. Overridable for forks.
-    siteUrl: (process.env.PREMIUM_SITE_URL ?? 'https://freellmapi.co').replace(/\/$/, ''),
+    // Where "Go Premium" / "recover key" links point. Fork storefront — see
+    // lib/brand.ts (overridable via PREMIUM_SITE_URL).
+    siteUrl: (process.env.PREMIUM_SITE_URL ?? BRAND_PREMIUM_SITE_URL).replace(/\/$/, ''),
   };
 }
 

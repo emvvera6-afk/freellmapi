@@ -4,7 +4,7 @@
 
 ## Package manifest
 
-`desktop/package.json` `freellmapi-desktop@0.9.2` — Electron `38.8.6`, `better-sqlite3@12.10.0`, `electron-builder@25.1.8`, `esbuild@0.24.0`. Entry `build/main.mjs` (`type: module`). AppId `com.freellmapi.desktop`, publish `github:tashfeenahmed/freellmapi` (`desktop/electron-builder.yml`). `asar` + `client-dist` in `extraResources`; per-OS signing targets (mac `dmg`+`zip` `arm64`+`x64` signed/notarized/stapled via `refresh-mac-update-metadata.mjs`, win `nsis`+`zip` `x64`, linux `AppImage`+`deb`+`tar.xz`+`rpm` `x64` since #981 `d8fae97`).
+`desktop/package.json` `freellmapi-desktop@0.9.2` — Electron `38.8.6`, `better-sqlite3@12.10.0`, `electron-builder@25.1.8`, `esbuild@0.24.0`. Entry `build/main.mjs` (`type: module`). AppId `com.freellmapi.desktop`, publish `github:emvvera6-afk/freellmapi` (`desktop/electron-builder.yml`). `asar` + `client-dist` in `extraResources`; per-OS signing targets (mac `dmg`+`zip` `arm64`+`x64` signed/notarized/stapled via `refresh-mac-update-metadata.mjs`, win `nsis`+`zip` `x64`, linux `AppImage`+`deb`+`tar.xz`+`rpm` `x64` since #981 `d8fae97`).
 
 ## Build pipeline
 
@@ -26,7 +26,7 @@ bundle:server → build:main / build:preload → stage:client → electron-build
 | `<userData>/backups` | Server dumps (`services/backups.ts` `dataDir()`) |
 | `Resources/client-dist` | Packaged client; dev: `client/dist` via `FREEAPI_REPO` |
 
-`~/Library/Application Support/FreeLLMAPI` (macOS), `%APPDATA%/FreeLLMAPI` (Windows), `~/.config/FreeLLMAPI` (Linux).
+`~/Library/Application Support/TokenHarbor` (macOS), `%APPDATA%/TokenHarbor` (Windows), `~/.config/TokenHarbor` (Linux).
 
 ## Embedded server-host
 
@@ -50,7 +50,7 @@ Deliberately NOT mirrored: `restoreDbBackupIfNeeded`/`startDbBackupPump` (`FREEA
 
 ## Tray / popover / window
 
-- `desktop/src/tray.ts` — menu-bar icon, `Open Logs Folder` / `Open Backups Folder` (`logger.ts:openLogsFolder`/`openBackupsFolder` via `shell.openPath`), `Open FreeLLMAPI`, quit.
+- `desktop/src/tray.ts` — menu-bar icon, `Open Logs Folder` / `Open Backups Folder` (`logger.ts:openLogsFolder`/`openBackupsFolder` via `shell.openPath`), `Open TokenHarbor`, quit.
 - `desktop/src/popover.ts` — popover window for quick access.
 - `desktop/src/window.ts` — main BrowserWindow chrome.
 
