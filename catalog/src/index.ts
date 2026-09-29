@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
+import fs from 'fs';
 import { loadEnv } from './env.js';
 import { openDb, ensureStripeEventsTable, dbPath } from './db.js';
 import { CatalogStore } from './catalog-files.js';
@@ -15,6 +16,25 @@ process.chdir(path.resolve(__dirname, '..'));
 await import('dotenv/config');
 
 const env = loadEnv();
+
+// Self-heal a fresh DATA_DIR: the image ships bundled signed seeds, so a new
+// (or ephemeral) data volume starts serving immediately, passing /healthz on
+// first boot. Only copies what's missing — republished catalogs win.
+{
+  const bundled = path.resolve(process.cwd(), 'data');
+  if (bundled !== env.dataDir) {
+    for (const name of ['catalog.live.json', 'catalog.live.json.sig', 'catalog.monthly.json', 'catalog.monthly.json.sig']) {
+      const target = path.join(env.dataDir, name);
+      const seed = path.join(bundled, name);
+      if (!fs.existsSync(target) && fs.existsSync(seed)) {
+        fs.mkdirSync(env.dataDir, { recursive: true });
+        fs.copyFileSync(seed, target);
+        console.log(`[boot] seeded ${name} into DATA_DIR`);
+      }
+    }
+  }
+}
+
 const backup = new GithubBackup(env.backup, dbPath(env.dataDir));
 // Ephemeral-disk hosts: pull the last bootstrapped state before opening the DB.
 await backup.restore();
