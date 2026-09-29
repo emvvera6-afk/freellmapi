@@ -1,0 +1,20 @@
+Attribution
+===========
+
+This repository is an independent fork of:
+
+    freellmapi — https://github.com/tashfeenahmed/freellmapi
+    Copyright (c) 2026 Tashfeen Ahmed
+    Distributed under the MIT License
+
+The MIT license text, including the original copyright notice, is preserved
+unmodified in ./LICENSE, as the license requires.
+
+New work in this fork, authored by the fork's maintainers, includes (but is
+not limited to) the `catalog/` workspace — the standalone catalog, licensing
+and billing service — plus its launch tooling and documentation. That work is
+released under the same MIT license.
+
+"FreeLLMAPI", freellmapi.co, and the upstream live catalog feed belong to
+the upstream author. This fork is not affiliated with, endorsed by, or
+sponsored by the upstream project.
