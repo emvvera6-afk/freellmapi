@@ -1,0 +1,76 @@
+import { fileURLToPath } from 'url';
+import path from 'path';
+import fs from 'fs';
+import { loadEnv } from './env.js';
+import { openDb, ensureStripeEventsTable, dbPath } from './db.js';
+import { CatalogStore } from './catalog-files.js';
+import { createMailer } from './mailer.js';
+import { stripeEnabledClient } from './stripe-client.js';
+import { GithubBackup } from './backup.js';
+import { buildApp } from './app.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// src/ (tsx dev) and dist/ (built) both sit one level under the package root.
+process.chdir(path.resolve(__dirname, '..'));
+
+await import('dotenv/config');
+
+const env = loadEnv();
+
+// Self-heal a fresh DATA_DIR: the image ships bundled signed seeds, so a new
+// (or ephemeral) data volume starts serving immediately, passing /healthz on
+// first boot. Only copies what's missing — republished catalogs win.
+{
+  const bundled = path.resolve(process.cwd(), 'data');
+  if (bundled !== env.dataDir) {
+    for (const name of ['catalog.live.json', 'catalog.live.json.sig', 'catalog.monthly.json', 'catalog.monthly.json.sig']) {
+      const target = path.join(env.dataDir, name);
+      const seed = path.join(bundled, name);
+      if (!fs.existsSync(target) && fs.existsSync(seed)) {
+        fs.mkdirSync(env.dataDir, { recursive: true });
+        fs.copyFileSync(seed, target);
+        console.log(`[boot] seeded ${name} into DATA_DIR`);
+      }
+    }
+  }
+}
+
+const backup = new GithubBackup(env.backup, dbPath(env.dataDir));
+// Ephemeral-disk hosts: pull the last bootstrapped state before opening the DB.
+await backup.restore();
+
+const db = openDb(env.dataDir);
+ensureStripeEventsTable(db);
+const store = new CatalogStore(env.dataDir);
+
+const mailer = createMailer(env);
+// Loud boot signal: if this says LogMailer, NO emails leave the box — check
+// SENDGRID_API_KEY / RESEND_API_KEY in the environment.
+console.log(`[boot] mailer: ${mailer.constructor.name}`);
+const stripe =
+  env.stripeEnabled && env.stripe.secretKey && env.stripe.webhookSecret
+    ? stripeEnabledClient(env.stripe.secretKey, env.stripe.webhookSecret)
+    : null;
+
+if (env.checkoutMode === 'manual') {
+  console.log('[boot] checkout mode: MANUAL — /buy order form is live; fulfill orders with ADMIN_TOKEN.');
+  if (!env.adminToken) console.warn('[boot] ADMIN_TOKEN unset — order fulfillment endpoint will answer 503!');
+  if (!env.payment.usdtAddress && !env.payment.paypalUrl) {
+    console.warn('[boot] no PAY_USDT_ADDRESS / PAY_PAYPAL_URL — /buy will tell buyers payments are being set up.');
+  }
+}
+
+const app = buildApp({ env, db, store, mailer, stripe, onStateChange: () => backup.schedule() });
+const server = app.listen(env.port, () => {
+  console.log(`[boot] ${env.brand.name} catalog service on :${env.port} (data: ${env.dataDir})`);
+});
+
+for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+  process.on(signal, () => {
+    console.log(`[shutdown] ${signal}`);
+    void backup.flush().finally(() => {
+      server.close(() => process.exit(0));
+      setTimeout(() => process.exit(1), 5000).unref();
+    });
+  });
+}

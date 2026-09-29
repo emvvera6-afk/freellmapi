@@ -63,7 +63,7 @@ interface Catalog {
 
 ```typescript
 const PINNED_CATALOG_PUBKEY = `-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAq9yv4+3EeyMHKsfVYBhkcz1lYgIXSUeHNnN6tNgYX3k=
+MCowBQYDK2VwAyEAGgQ7O2o6GcmRZGWWudAFmnTrUveMpOwL9oOwY8UsQTw=
 -----END PUBLIC KEY-----`;
 
 // Fetch
@@ -73,7 +73,7 @@ const bytes = Buffer.from(await res.arrayBuffer());
 const verified = crypto.verify(null, bytes, catalogPublicKey(), Buffer.from(signature, 'base64'));
 ```
 
-- **Pinned key**: private half never left catalog host.
+- **Pinned key**: the private half lives uncommitted in the fork's catalog service (`catalog/.env` / `CATALOG_PRIVKEY` deploy secret) — rotate with `npm run keygen -w catalog`.
 - **Self-hosted catalog override**: `CATALOG_BASE_URL`, `CATALOG_PUBKEY` env vars.
 - **Tamper-proof**: anything unsigned or modified is discarded. Compromised CDN / MITM cannot inject models or quirks.
 
@@ -260,7 +260,7 @@ startCatalogSync(scheduler: Scheduler)
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `CATALOG_BASE_URL` | `https://api.freellmapi.co` | Catalog service endpoint |
+| `CATALOG_BASE_URL` | this fork's catalog service (see `server/src/lib/brand.ts`) | Catalog service endpoint |
 | `CATALOG_PUBKEY` | Pinned Ed25519 key | Override for self-hosted catalog |
 | `CATALOG_SYNC_DISABLED` | `0` | Kill switch (`1` = disabled) |
 

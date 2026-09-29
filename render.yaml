@@ -1,0 +1,39 @@
+# render.yaml — one-click deploy of the catalog/licensing service on Render's
+# free plan (https://render.com → New → Blueprint → point at this repo).
+#
+# What you get for $0: the service at https://<name>.onrender.com with real
+# TLS — that hostname doubles as your SITE_URL and your brand domain until
+# revenue buys a real one.
+#
+# Know the free-plan trade-offs before launch:
+#   · Sleeps after 15 min idle → first request after a nap takes ~30–60 s.
+#     Router catalog polls retry, so this is invisible to users; just don't
+#     demo /buy while it's cold.
+#   · Ephemeral disk → set BACKUP_GITHUB_REPO + BACKUP_GITHUB_TOKEN so
+#     licenses.db restores on boot and re-saves after every sale/refill.
+#   · Monthly free-hours cap: one web service fits (750 h/month).
+
+services:
+  - type: web
+    name: tokenharbor                # → https://tokenharbor.onrender.com (si está ocupado, Render agrega un sufijo; renómbralo en el dashboard a tu marca)
+    runtime: docker
+    repo: https://github.com/emvvera6-afk/freellmapi
+    branch: arena/01a0e9df-freellmapi  # la sesión vive aquí; al fusionar a main luego, vuelve a poner "main"
+    dockerfilePath: ./catalog/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: DATA_DIR
+        value: /data
+      - key: PORT
+        value: "8780"
+      # ── Set these in the Render dashboard (never here) ──
+      # BRAND_NAME, SITE_URL=https://<name>.onrender.com, BRAND_DOMAIN=<name>.onrender.com
+      # GITHUB_URL, SUPPORT_EMAIL
+      # CHECKOUT_MODE=manual, PAY_USDT_ADDRESS, PAY_PAYPAL_URL, PAY_NOTE, ADMIN_TOKEN
+      # SENDGRID_API_KEY, EMAIL_FROM
+      # BACKUP_GITHUB_REPO, BACKUP_GITHUB_TOKEN
+      # (catalog signing key stays OFF the box: CATALOG_PRIVKEY is only used
+      #  by your local `npm run sign` when publishing.)
