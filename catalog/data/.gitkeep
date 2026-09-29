@@ -1,0 +1,2 @@
+# Holds the catalog products (catalog.live.json / catalog.monthly.json) and
+# their signatures (*.sig), plus licenses.db at runtime.
